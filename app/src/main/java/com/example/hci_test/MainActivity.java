@@ -1,5 +1,6 @@
 package com.example.hci_test;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.PixelCopy;
@@ -61,6 +62,15 @@ public class MainActivity extends AppCompatActivity {
         setSupportActionBar(toolbar);
 
         okHttpClient = new OkHttpClient();
+
+        ImageView imageViewCollection = findViewById(R.id.imageViewCollection);
+        imageViewCollection.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent intent = new Intent(MainActivity.this, CollectionPage.class);
+                startActivity(intent);
+            }
+        });
 
         imageViewSearch.setOnClickListener(new View.OnClickListener() {
             @Override
