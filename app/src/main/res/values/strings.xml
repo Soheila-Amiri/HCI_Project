@@ -1,3 +1,5 @@
 <resources>
     <string name="app_name">HCI_TEST</string>
+    <string name="delete_post">delete post\n</string>
+    <string name="add_to_collection">add to collection</string>
 </resources>

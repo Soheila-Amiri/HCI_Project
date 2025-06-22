@@ -41,7 +41,7 @@
             <TextView
                 android:id="@+id/textViewDescription"
                 android:layout_width="0dp"
-                android:layout_height="48dp"
+                android:layout_height="46dp"
                 android:layout_marginStart="8dp"
                 android:layout_marginEnd="8dp"
                 android:layout_marginBottom="16dp"
@@ -76,50 +76,6 @@
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toTopOf="parent"
                 app:srcCompat="@drawable/ic_face" />
-            <ImageView
-                android:id="@+id/deleteButton"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginEnd="8dp"
-                android:contentDescription="@string/delete_post"
-                android:src="@android:drawable/ic_menu_delete"
-                android:visibility="gone"
-                app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintTop_toTopOf="@id/imageViewLikes"
-                app:layout_constraintBottom_toBottomOf="@id/imageViewLikes" />
-
-            <ImageView
-                android:id="@+id/addToCollectionButton"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginEnd="8dp"
-                android:contentDescription="@string/add_to_collection"
-                android:src="@android:drawable/ic_input_add"
-                app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintTop_toTopOf="@id/imageViewLikes"
-                app:layout_constraintBottom_toBottomOf="@id/imageViewLikes" />
-
-            <!--            <ImageView-->
-            <!--                android:id="@+id/addToCollectionButton"-->
-            <!--                android:layout_width="wrap_content"-->
-            <!--                android:layout_height="wrap_content"-->
-            <!--                android:layout_marginEnd="8dp"-->
-            <!--                android:contentDescription="@string/add_to_collection"-->
-            <!--                android:src="@android:drawable/ic_input_add"-->
-            <!--                app:layout_constraintEnd_toEndOf="parent"-->
-            <!--                app:layout_constraintTop_toTopOf="@+id/imageViewLikes" />-->
-
-            <!--            <ImageView-->
-            <!--                android:id="@+id/deleteButton"-->
-            <!--                android:layout_width="wrap_content"-->
-            <!--                android:layout_height="wrap_content"-->
-            <!--                android:layout_marginTop="8dp"-->
-            <!--                android:layout_marginEnd="8dp"-->
-            <!--                android:contentDescription="@string/delete_post"-->
-            <!--                android:src="@android:drawable/ic_menu_delete"-->
-            <!--                android:visibility="gone"-->
-            <!--                app:layout_constraintEnd_toEndOf="parent"-->
-            <!--                app:layout_constraintTop_toTopOf="@+id/imageViewLikes" />-->
 
 
         </androidx.constraintlayout.widget.ConstraintLayout>

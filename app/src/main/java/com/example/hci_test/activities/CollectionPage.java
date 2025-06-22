@@ -84,5 +84,10 @@ public class CollectionPage extends AppCompatActivity implements CollectionAdapt
                 .show();
     }
 
+    @Override
+    protected void onResume() {
+        super.onResume();
+        adapter.updateData(CollectionManager.getAllCollections());
+    }
 
 }

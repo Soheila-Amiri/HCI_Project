@@ -14,14 +14,16 @@ public class PostViewHolder extends RecyclerView.ViewHolder {
     ImageView imageViewLikes;
     TextView textViewLikes;
     TextView textViewDescription;
+    ImageView addToCollectionButton;
 
     public PostViewHolder(@NonNull View itemView) {
         super(itemView);
-        imageView = itemView.findViewById(R.id.imageViewCollection);
+        imageView = itemView.findViewById(R.id.imageView);
         imageViewUser = itemView.findViewById(R.id.imageViewUser);
         textViewUsername = itemView.findViewById(R.id.textViewUsername);
         imageViewLikes = itemView.findViewById(R.id.imageViewLikes);
         textViewLikes = itemView.findViewById(R.id.textViewLikes);
         textViewDescription = itemView.findViewById(R.id.textViewDescription);
+        addToCollectionButton = itemView.findViewById(R.id.addToCollectionButton); // ✅ Adăugat
     }
 }

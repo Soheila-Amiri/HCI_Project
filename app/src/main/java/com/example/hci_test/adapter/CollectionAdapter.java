@@ -50,13 +50,14 @@ public class CollectionAdapter extends RecyclerView.Adapter<CollectionAdapter.Vi
         holder.collectionName.setText(collection.getName());
         holder.collectionCount.setText(collection.getPosts().size() + " posts");
 
-        // Always show default placeholder image
+        // Always show default placeholder image TODO: add as image the image from the first post
         holder.collectionImage.setImageResource(R.drawable.placeholder_collection);
 
         holder.itemView.setOnLongClickListener(v -> {
             listener.onCollectionLongPressed(collection.getName());
             return true;
         });
+
     }
 
     @Override

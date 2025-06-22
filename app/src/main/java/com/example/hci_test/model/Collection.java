@@ -31,6 +31,12 @@ public class Collection {
         Collection other = (Collection) obj;
         return Objects.equals(this.name, other.name);
     }
+    public String getThumbnailUrl() {
+        if (!posts.isEmpty()) {
+            return posts.get(posts.size() - 1).getUrl();
+        }
+        return "placeholder";
+    }
 
     @Override
     public int hashCode() {
