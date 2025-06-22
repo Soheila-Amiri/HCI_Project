@@ -5,8 +5,8 @@ import java.util.List;
 import java.util.Objects;
 
 public class Collection {
-    private final String name;
-    private final List<Post> posts;
+    private String name;
+    private List<Post> posts;
 
     public Collection(String name) {
         this.name = name;
@@ -31,9 +31,10 @@ public class Collection {
         Collection other = (Collection) obj;
         return Objects.equals(this.name, other.name);
     }
+
     public String getThumbnailUrl() {
-        if (!posts.isEmpty()) {
-            return posts.get(posts.size() - 1).getUrl();
+        if (posts != null && !posts.isEmpty()) {
+            return posts.get(0).getUrl();
         }
         return "placeholder";
     }
@@ -41,5 +42,9 @@ public class Collection {
     @Override
     public int hashCode() {
         return Objects.hash(name);
+    }
+
+    public void setName(String name) {
+        this.name = name;
     }
 }

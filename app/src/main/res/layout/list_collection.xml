@@ -5,7 +5,6 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent">
 
-    <!-- Toolbar gol, fără copii -->
     <androidx.appcompat.widget.Toolbar
         android:id="@+id/toolbar"
         android:layout_width="0dp"
@@ -17,7 +16,6 @@
         app:layout_constraintEnd_toEndOf="parent"
     />
 
-    <!-- Conținutul real al toolbarului -->
     <RelativeLayout
         android:id="@+id/toolbarContent"
         android:layout_width="0dp"
@@ -54,7 +52,6 @@
             android:textStyle="bold" />
     </RelativeLayout>
 
-    <!-- RecyclerView sub toolbar -->
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/recyclerView"
         android:layout_width="0dp"

@@ -15,6 +15,7 @@ public class PostViewHolder extends RecyclerView.ViewHolder {
     TextView textViewLikes;
     TextView textViewDescription;
     ImageView addToCollectionButton;
+    ImageView deleteButton;
 
     public PostViewHolder(@NonNull View itemView) {
         super(itemView);
@@ -24,6 +25,7 @@ public class PostViewHolder extends RecyclerView.ViewHolder {
         imageViewLikes = itemView.findViewById(R.id.imageViewLikes);
         textViewLikes = itemView.findViewById(R.id.textViewLikes);
         textViewDescription = itemView.findViewById(R.id.textViewDescription);
-        addToCollectionButton = itemView.findViewById(R.id.addToCollectionButton); // ✅ Adăugat
+        addToCollectionButton = itemView.findViewById(R.id.addToCollectionButton);
+        deleteButton = itemView.findViewById(R.id.deleteButton);
     }
 }

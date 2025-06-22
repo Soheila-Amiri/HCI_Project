@@ -26,14 +26,18 @@ import com.example.hci_test.model.Post;
 import java.util.List;
 
 public class PostAdaptor extends RecyclerView.Adapter<PostViewHolder> {
-
     List<Post> postList;
     Context context;
+    private boolean collectionMode;
+    
 
-    public PostAdaptor(List<Post> postList, MainActivity context) {
+    public PostAdaptor(List<Post> postList, Context context, boolean collectionMode) {
         this.postList = postList;
         this.context = context;
+        this.collectionMode = collectionMode;
     }
+
+
 
     @NonNull
     @Override
@@ -54,6 +58,29 @@ public class PostAdaptor extends RecyclerView.Adapter<PostViewHolder> {
         holder.textViewDescription.setText(post.getDescription());
 
         holder.addToCollectionButton.setOnClickListener(v -> showAddToCollectionDialog(post));
+
+        if (collectionMode) {
+            holder.addToCollectionButton.setVisibility(View.GONE);
+            holder.deleteButton.setVisibility(View.VISIBLE);
+            holder.deleteButton.setOnClickListener(v -> {
+                int adapterPosition = holder.getAdapterPosition();
+                Post postToRemove = postList.get(adapterPosition);
+
+                for (Collection collection : CollectionManager.getAllCollections()) {
+                    if (collection.getPosts().contains(postToRemove)) {
+                        collection.getPosts().remove(postToRemove);
+                        break;
+                    }
+                }
+
+                postList.remove(adapterPosition);
+                notifyItemRemoved(adapterPosition);
+            });
+        } else {
+            holder.addToCollectionButton.setVisibility(View.VISIBLE);
+            holder.deleteButton.setVisibility(View.GONE);
+        }
+
     }
     private void showAddToCollectionDialog(Post post) {
         View dialogView = LayoutInflater.from(context).inflate(R.layout.dialog_add_to_collection, null);
@@ -69,9 +96,12 @@ public class PostAdaptor extends RecyclerView.Adapter<PostViewHolder> {
                 .setPositiveButton("Save", (d, which) -> {
                     for (String collectionName : adapter.getSelectedNames()) {
                         boolean added = CollectionManager.addPostToCollection(collectionName, post);
-                        // optionally: show Toast for each addition
+                        if (added) {
+                            Toast.makeText(context, "Saved to selected collections", Toast.LENGTH_SHORT).show();
+                        } else {
+                            Toast.makeText(context, "Post already exists in selected collection", Toast.LENGTH_SHORT).show();
+                        }
                     }
-                    Toast.makeText(context, "Saved to selected collections", Toast.LENGTH_SHORT).show();
                 })
                 .setNegativeButton("Cancel", null)
                 .create();
@@ -109,6 +139,8 @@ public class PostAdaptor extends RecyclerView.Adapter<PostViewHolder> {
                 .setNegativeButton("Cancel", null)
                 .show();
     }
+
+
 
 
     @Override

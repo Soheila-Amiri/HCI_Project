@@ -1,6 +1,7 @@
 package com.example.hci_test.adapter;
 
 import android.annotation.SuppressLint;
+import android.content.Intent;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -10,6 +11,7 @@ import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.bumptech.glide.Glide;
 import com.example.hci_test.R;
 import com.example.hci_test.model.Collection;
 
@@ -50,12 +52,26 @@ public class CollectionAdapter extends RecyclerView.Adapter<CollectionAdapter.Vi
         holder.collectionName.setText(collection.getName());
         holder.collectionCount.setText(collection.getPosts().size() + " posts");
 
-        // Always show default placeholder image TODO: add as image the image from the first post
-        holder.collectionImage.setImageResource(R.drawable.placeholder_collection);
+        String thumbnailUrl = collection.getThumbnailUrl();
+
+        if ("placeholder".equals(thumbnailUrl)) {
+            holder.collectionImage.setImageResource(R.drawable.placeholder_collection);
+        } else {
+            Glide.with(holder.itemView.getContext())
+                    .load(thumbnailUrl)
+                    .placeholder(R.drawable.placeholder_collection)
+                    .into(holder.collectionImage);
+        }
 
         holder.itemView.setOnLongClickListener(v -> {
             listener.onCollectionLongPressed(collection.getName());
             return true;
+        });
+
+        holder.itemView.setOnClickListener(v -> {
+            Intent intent = new Intent(v.getContext(), com.example.hci_test.activities.SingleCollectionActivity.class);
+            intent.putExtra("collection_name", collection.getName());
+            v.getContext().startActivity(intent);
         });
 
     }

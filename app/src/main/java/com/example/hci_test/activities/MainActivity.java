@@ -123,7 +123,7 @@ public class MainActivity extends AppCompatActivity {
                     runOnUiThread(new Runnable() {
                         @Override
                         public void run() {
-                            postAdaptor = new PostAdaptor(postList, MainActivity.this);
+                            postAdaptor = new PostAdaptor(postList, MainActivity.this, false);
                             recyclerView.setAdapter(postAdaptor);
                             progressBar.setVisibility(View.INVISIBLE);
                             recyclerView.setLayoutManager(layoutManager);
