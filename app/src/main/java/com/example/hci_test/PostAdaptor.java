@@ -9,6 +9,8 @@ import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.bumptech.glide.Glide;
+import com.example.hci_test.activities.MainActivity;
+import com.example.hci_test.model.Post;
 
 import java.util.List;
 
