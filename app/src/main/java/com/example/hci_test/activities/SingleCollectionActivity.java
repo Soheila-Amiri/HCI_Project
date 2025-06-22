@@ -4,6 +4,8 @@ import android.annotation.SuppressLint;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
+import android.text.Editable;
+import android.text.TextWatcher;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -38,6 +40,9 @@ public class SingleCollectionActivity extends AppCompatActivity {
     private Collection collection;
     private PostAdaptor postAdapter;
     private TextView textViewTitle;
+    EditText editTextSearch;
+    List<Post> reversedPosts;
+    List<Post> allPosts;
 
     @SuppressLint("MissingInflatedId")
     @Override
@@ -64,11 +69,45 @@ public class SingleCollectionActivity extends AppCompatActivity {
         RecyclerView recyclerView = findViewById(R.id.recyclerViewCollection);
         recyclerView.setLayoutManager(new GridLayoutManager(this, 2));
 
-        List<Post> reversedPosts = new ArrayList<>(collection.getPosts());
+        reversedPosts = new ArrayList<>(collection.getPosts());
         Collections.reverse(reversedPosts);
 
         postAdapter = new PostAdaptor(reversedPosts, this,true);
         recyclerView.setAdapter(postAdapter);
+
+        editTextSearch = findViewById(R.id.editTextSearch);
+        allPosts = new ArrayList<>(collection.getPosts());
+        Collections.reverse(allPosts); // newest first
+        reversedPosts = new ArrayList<>(allPosts);
+
+        postAdapter = new PostAdaptor(reversedPosts, this, true);
+        recyclerView.setAdapter(postAdapter);
+
+        editTextSearch.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
+
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) {
+                filterPosts(s.toString());
+            }
+
+            @Override
+            public void afterTextChanged(Editable s) {}
+        });
+    }
+    private void filterPosts(String query) {
+        reversedPosts.clear();
+        if (query.isEmpty()) {
+            reversedPosts.addAll(allPosts);
+        } else {
+            for (Post post : allPosts) {
+                if (post.getDescription().toLowerCase().contains(query.toLowerCase())) {
+                    reversedPosts.add(post);
+                }
+            }
+        }
+        postAdapter.notifyDataSetChanged();
     }
 
     private void showPopupMenu() {

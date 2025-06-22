@@ -52,6 +52,27 @@
         </RelativeLayout>
     </androidx.appcompat.widget.Toolbar>
 
+    <EditText
+    android:id="@+id/editTextSearch"
+    android:layout_width="0dp"
+    android:layout_height="50dp"
+    android:layout_marginStart="8dp"
+    android:layout_marginTop="16dp"
+    android:hint="Enter your query"
+    android:inputType="text"
+    app:layout_constraintTop_toBottomOf="@id/toolbar"
+    app:layout_constraintStart_toStartOf="parent"
+    app:layout_constraintEnd_toStartOf="@id/imageViewSearch" />
+
+    <ImageView
+        android:id="@+id/imageViewSearch"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginEnd="8dp"
+        app:srcCompat="@android:drawable/ic_menu_search"
+        app:layout_constraintTop_toTopOf="@id/editTextSearch"
+        app:layout_constraintBottom_toBottomOf="@id/editTextSearch"
+        app:layout_constraintEnd_toEndOf="parent" />
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/recyclerViewCollection"
         android:layout_width="0dp"
@@ -60,7 +81,7 @@
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/toolbar"
+        app:layout_constraintTop_toBottomOf="@id/editTextSearch"
         tools:listitem="@layout/list_item" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>
