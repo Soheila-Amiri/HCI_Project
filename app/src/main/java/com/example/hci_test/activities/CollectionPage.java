@@ -2,6 +2,7 @@ package com.example.hci_test.activities;
 
 import android.annotation.SuppressLint;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.EditText;
@@ -15,8 +16,10 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.hci_test.R;
 import com.example.hci_test.adapter.CollectionAdapter;
+import com.example.hci_test.model.Collection;
 import com.example.hci_test.model.CollectionManager;
 
+import java.util.List;
 import java.util.Objects;
 
 public class CollectionPage extends AppCompatActivity implements CollectionAdapter.OnCollectionClickListener
@@ -84,5 +87,16 @@ public class CollectionPage extends AppCompatActivity implements CollectionAdapt
                 .show();
     }
 
+    @Override
+    protected void onResume() {
+        super.onResume();
+
+        List<Collection> collections = CollectionManager.getAllCollections();
+        for (Collection c : collections) {
+            Log.d("COLLECTION_DEBUG", "Collection: " + c.getName() + ", posts: " + c.getPosts().size());
+        }
+
+        adapter.updateData(collections);
+    }
 
 }

@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:padding="24dp"
+    android:background="@drawable/bg_dialog_rounded">
+
+    <TextView
+        android:id="@+id/textViewDialogTitle"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Enter a new name"
+        android:textStyle="bold"
+        android:textSize="16sp"
+        android:paddingBottom="12dp"
+        android:textColor="@android:color/black" />
+
+    <EditText
+        android:id="@+id/editTextNewName"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="New collection name"
+        android:background="@drawable/bg_edittext_rounded"
+        android:padding="12dp"
+        android:textColor="@android:color/black"
+        android:textSize="15sp" />
+</LinearLayout>

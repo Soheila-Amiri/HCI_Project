@@ -7,6 +7,7 @@ import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.ProgressBar;
 import android.widget.Toast;
+import androidx.appcompat.app.AlertDialog;
 
 import androidx.activity.EdgeToEdge;
 import androidx.annotation.NonNull;
@@ -15,6 +16,7 @@ import androidx.appcompat.widget.Toolbar;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.example.hci_test.model.CollectionManager;
 import com.example.hci_test.model.Post;
 import com.example.hci_test.PostAdaptor;
 import com.example.hci_test.R;
@@ -121,7 +123,7 @@ public class MainActivity extends AppCompatActivity {
                     runOnUiThread(new Runnable() {
                         @Override
                         public void run() {
-                            postAdaptor = new PostAdaptor(postList, MainActivity.this);
+                            postAdaptor = new PostAdaptor(postList, MainActivity.this, false);
                             recyclerView.setAdapter(postAdaptor);
                             progressBar.setVisibility(View.INVISIBLE);
                             recyclerView.setLayoutManager(layoutManager);
@@ -133,4 +135,61 @@ public class MainActivity extends AppCompatActivity {
             }
         });
     }
+
+    public void openNewCollectionDialog() {
+        openNewCollectionDialog(null);
+    }
+
+   /* public void openNewCollectionDialog() {
+        View dialogView = getLayoutInflater().inflate(R.layout.dialog_add_collection, null);
+        EditText editText = dialogView.findViewById(R.id.editTextCollectionName);
+
+        new AlertDialog.Builder(this)
+                .setTitle("New Collection")
+                .setView(dialogView)
+                .setPositiveButton("Save", (dialog, which) -> {
+                    String name = editText.getText().toString().trim();
+                    if (!name.isEmpty()) {
+                        boolean created = CollectionManager.createCollection(name);
+                        if (created) {
+                            Toast.makeText(this, "Collection created", Toast.LENGTH_SHORT).show();
+                        } else {
+                            Toast.makeText(this, "Collection already exists", Toast.LENGTH_SHORT).show();
+                        }
+                    } else {
+                        Toast.makeText(this, "Name cannot be empty", Toast.LENGTH_SHORT).show();
+                    }
+                })
+                .setNegativeButton("Cancel", null)
+                .show();
+    } */
+
+    public void openNewCollectionDialog(Post postToAdd) {
+        View dialogView = getLayoutInflater().inflate(R.layout.dialog_add_collection, null);
+        EditText editText = dialogView.findViewById(R.id.editTextCollectionName);
+
+        new AlertDialog.Builder(this)
+                .setTitle("New Collection")
+                .setView(dialogView)
+                .setPositiveButton("Save", (dialog, which) -> {
+                    String name = editText.getText().toString().trim();
+                    if (!name.isEmpty()) {
+                        boolean created = CollectionManager.createCollection(name);
+                        if (created) {
+                            if (postToAdd != null) {
+                                CollectionManager.addPostToCollection(name, postToAdd);
+                            }
+                            Toast.makeText(this, "Collection created", Toast.LENGTH_SHORT).show();
+                        } else {
+                            Toast.makeText(this, "Collection already exists", Toast.LENGTH_SHORT).show();
+                        }
+                    } else {
+                        Toast.makeText(this, "Name cannot be empty", Toast.LENGTH_SHORT).show();
+                    }
+                })
+                .setNegativeButton("Cancel", null)
+                .show();
+    }
+
+
 }

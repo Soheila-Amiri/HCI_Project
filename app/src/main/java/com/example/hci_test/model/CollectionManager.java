@@ -30,6 +30,11 @@ public class CollectionManager {
         return new ArrayList<>(collections.keySet());
     }
 
+    public static Collection getCollectionByName(String name) {
+        return collections.get(name);
+    }
+
+
     public static boolean addPostToCollection(String collectionName, Post post) {
         if (!collections.containsKey(collectionName)) return false;
         Collection collection = collections.get(collectionName);
@@ -37,4 +42,14 @@ public class CollectionManager {
         collection.addPost(post);
         return true;
     }
+
+    public static boolean renameCollection(String oldName, String newName) {
+        if (!collections.containsKey(oldName) || collections.containsKey(newName)) return false;
+
+        Collection collection = collections.remove(oldName);
+        collection.setName(newName);
+        collections.put(newName, collection);
+        return true;
+    }
+
 }
