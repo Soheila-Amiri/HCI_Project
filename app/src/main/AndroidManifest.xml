@@ -24,8 +24,8 @@
             </intent-filter>
         </activity>
 
-        <activity android:name=".activities.CollectionPage" />
-        <activity android:name=".activities.SingleCollectionActivity" />
+        <activity android:name=".activities.CollectionPage"/>
+        <activity android:name=".activities.SingleCollectionActivity"/>
     </application>
 
 </manifest>

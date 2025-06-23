@@ -28,6 +28,7 @@ import org.json.JSONObject;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Random;
 
 import okhttp3.Call;
 import okhttp3.Callback;
@@ -108,6 +109,8 @@ public class MainActivity extends AppCompatActivity {
                         return;
                     }
                     JSONArray postObjects = jsonObject.getJSONArray("photos");
+                    long randomSeed = textSearch.toLowerCase().hashCode();
+                    Random random = new Random(randomSeed);
                     for (int i = 0; i < postObjects.length(); i++){
                         JSONObject singlePost = postObjects.getJSONObject(i);
                         Post postObject = new Post();
@@ -116,6 +119,11 @@ public class MainActivity extends AppCompatActivity {
                             postObject.setUrl(imageUrl);
                             postObject.setPhotographer(singlePost.getString("photographer"));
                             postObject.setDescription(singlePost.getString("alt"));
+                            int profileImageIndex = random.nextInt(10) + 1;
+                            String profileImagePath = "file:///android_asset/Profile_pictures/" + profileImageIndex + ".jpg";
+                            String likeNum = "" + random.nextInt(100) + 1;
+                            postObject.setUserProfile(profileImagePath);
+                            postObject.setLikes(likeNum);
                             postList.add(postObject);
                         }
                     }

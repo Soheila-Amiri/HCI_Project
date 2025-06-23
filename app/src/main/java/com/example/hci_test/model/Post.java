@@ -6,13 +6,34 @@ public class Post {
     private String url;
     private String photographer;
     private String description;
+    private String likes;
+
+    public String getUserProfile() {
+        return userProfile;
+    }
+
+    public void setUserProfile(String userProfile) {
+        this.userProfile = userProfile;
+    }
+
+    public String getLikes() {
+        return likes;
+    }
+
+    public void setLikes(String likes) {
+        this.likes = likes;
+    }
+
+    private String userProfile;
 
     public Post() {}
 
-    public Post(String url, String photographer, String description) {
+    public Post(String url, String photographer, String description, String likes, String userProfile) {
         this.url = url;
         this.photographer = photographer;
         this.description = description;
+        this.likes = likes;
+        this.userProfile = userProfile;
     }
 
     public String getUrl() {

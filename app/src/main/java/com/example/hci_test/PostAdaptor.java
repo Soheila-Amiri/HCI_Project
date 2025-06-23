@@ -50,7 +50,6 @@ public class PostAdaptor extends RecyclerView.Adapter<PostViewHolder> {
     @Override
     public void onBindViewHolder(@NonNull PostViewHolder holder, int position) {
 
-        Random random = new Random();
 
         Post post = postList.get(position);
         Glide.with(context).load(post.getUrl())
@@ -58,12 +57,10 @@ public class PostAdaptor extends RecyclerView.Adapter<PostViewHolder> {
                 .centerCrop()
                 .into(holder.imageView);
         holder.textViewUsername.setText(post.getPhotographer());
-        holder.textViewLikes.setText("" + random.nextInt(100) + 1);
+        holder.textViewLikes.setText(post.getLikes());
         holder.textViewDescription.setText(post.getDescription());
 
-        int profileImageIndex = random.nextInt(10) + 1;
-        String profileImagePath = "file:///android_asset/Profile_pictures/" + profileImageIndex + ".jpg";
-        Glide.with(context).load(profileImagePath)
+        Glide.with(context).load(post.getUserProfile())
                 .circleCrop()
                 .into(holder.imageViewUser);
         holder.addToCollectionButton.setOnClickListener(v -> showAddToCollectionDialog(post));
