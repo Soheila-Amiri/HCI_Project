@@ -88,6 +88,7 @@ public class PostAdaptor extends RecyclerView.Adapter<PostViewHolder> {
         }
 
     }
+
     private void showAddToCollectionDialog(Post post) {
         View dialogView = LayoutInflater.from(context).inflate(R.layout.dialog_add_to_collection, null);
         ListView listView = dialogView.findViewById(R.id.listViewCollections);
@@ -99,20 +100,39 @@ public class PostAdaptor extends RecyclerView.Adapter<PostViewHolder> {
 
         AlertDialog dialog = new AlertDialog.Builder(context)
                 .setView(dialogView)
-                .setPositiveButton("Save", (d, which) -> {
-                    for (String collectionName : adapter.getSelectedNames()) {
-                        boolean added = CollectionManager.addPostToCollection(collectionName, post);
-                        if (added) {
-                            Toast.makeText(context, "Saved to selected collections", Toast.LENGTH_SHORT).show();
-                        } else {
-                            Toast.makeText(context, "Post already exists in selected collection", Toast.LENGTH_SHORT).show();
-                        }
-                    }
-                })
+                .setPositiveButton("Save", null) // We'll override this after .show()
                 .setNegativeButton("Cancel", null)
                 .create();
 
         dialog.show();
+
+        dialog.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener(v -> {
+            boolean anySelected = false;
+            boolean anySaved = false;
+            boolean anyDuplicate = false;
+
+            for (String collectionName : adapter.getSelectedNames()) {
+                anySelected = true;
+                boolean added = CollectionManager.addPostToCollection(collectionName, post);
+                if (added) {
+                    anySaved = true;
+                } else {
+                    anyDuplicate = true;
+                }
+            }
+
+            if (!anySelected) {
+                Toast.makeText(context, "No collections selected", Toast.LENGTH_SHORT).show();
+            } else {
+                if (anySaved) {
+                    Toast.makeText(context, "Post saved successfully", Toast.LENGTH_SHORT).show();
+                }
+                if (anyDuplicate) {
+                    Toast.makeText(context, "Post already exists in one or more collections", Toast.LENGTH_SHORT).show();
+                }
+                dialog.dismiss();
+            }
+        });
 
         newCollectionBtn.setOnClickListener(v -> {
             dialog.dismiss();
@@ -121,6 +141,41 @@ public class PostAdaptor extends RecyclerView.Adapter<PostViewHolder> {
             }
         });
     }
+
+
+    //    private void showAddToCollectionDialog(Post post) {
+//        View dialogView = LayoutInflater.from(context).inflate(R.layout.dialog_add_to_collection, null);
+//        ListView listView = dialogView.findViewById(R.id.listViewCollections);
+//        TextView newCollectionBtn = dialogView.findViewById(R.id.textViewNewCollection);
+//
+//        List<Collection> allCollections = CollectionManager.getAllCollections();
+//        CollectionChoiceAdapter adapter = new CollectionChoiceAdapter(context, allCollections);
+//        listView.setAdapter(adapter);
+//
+//        AlertDialog dialog = new AlertDialog.Builder(context)
+//                .setView(dialogView)
+//                .setPositiveButton("Save", (d, which) -> {
+//                    for (String collectionName : adapter.getSelectedNames()) {
+//                        boolean added = CollectionManager.addPostToCollection(collectionName, post);
+//                        if (added) {
+//                            Toast.makeText(context, "Saved to selected collections", Toast.LENGTH_SHORT).show();
+//                        } else {
+//                            Toast.makeText(context, "Post already exists in selected collection", Toast.LENGTH_SHORT).show();
+//                        }
+//                    }
+//                })
+//                .setNegativeButton("Cancel", null)
+//                .create();
+//
+//        dialog.show();
+//
+//        newCollectionBtn.setOnClickListener(v -> {
+//            dialog.dismiss();
+//            if (context instanceof MainActivity) {
+//                ((MainActivity) context).openNewCollectionDialog(post);
+//            }
+//        });
+//    }
     private void showCreateCollectionDialog(Post post) {
         View dialogView = LayoutInflater.from(context).inflate(R.layout.dialog_add_collection, null);
         EditText editText = dialogView.findViewById(R.id.editTextCollectionName);
