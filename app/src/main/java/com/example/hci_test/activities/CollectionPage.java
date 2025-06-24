@@ -1,14 +1,13 @@
 package com.example.hci_test.activities;
 
 import android.annotation.SuppressLint;
-import android.content.Intent;
 import android.os.Bundle;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.EditText;
-import android.widget.ImageView;
+import android.widget.TextView;
 import android.widget.Toast;
+import android.widget.ImageView;
 
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
@@ -24,11 +23,12 @@ import com.example.hci_test.model.CollectionManager;
 import java.util.List;
 import java.util.Objects;
 
-public class CollectionPage extends AppCompatActivity implements CollectionAdapter.OnCollectionClickListener
-{
+public class CollectionPage extends AppCompatActivity implements CollectionAdapter.OnCollectionClickListener {
 
-    RecyclerView recyclerView;
-    CollectionAdapter adapter;
+    private RecyclerView recyclerView;
+    private CollectionAdapter adapter;
+    private TextView textViewNoCollections;
+
     @SuppressLint("MissingInflatedId")
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -43,11 +43,15 @@ public class CollectionPage extends AppCompatActivity implements CollectionAdapt
 
         findViewById(R.id.imageViewAddCollection).setOnClickListener(v -> showAddCollectionDialog());
 
+        textViewNoCollections = findViewById(R.id.textViewNoCollections);
+
         recyclerView = findViewById(R.id.recyclerView);
         recyclerView.setLayoutManager(new GridLayoutManager(this, 2));
 
         adapter = new CollectionAdapter(CollectionManager.getAllCollections(), this);
         recyclerView.setAdapter(adapter);
+
+        updateNoCollectionsMessage();
     }
 
     private void showAddCollectionDialog() {
@@ -63,6 +67,7 @@ public class CollectionPage extends AppCompatActivity implements CollectionAdapt
                         boolean created = CollectionManager.createCollection(name);
                         if (created) {
                             adapter.updateData(CollectionManager.getAllCollections());
+                            updateNoCollectionsMessage();
                             Toast.makeText(this, "Collection added", Toast.LENGTH_SHORT).show();
                         } else {
                             Toast.makeText(this, "Collection name already exists", Toast.LENGTH_SHORT).show();
@@ -83,6 +88,7 @@ public class CollectionPage extends AppCompatActivity implements CollectionAdapt
                 .setPositiveButton("Yes", (dialog, which) -> {
                     CollectionManager.removeCollection(name);
                     adapter.updateData(CollectionManager.getAllCollections());
+                    updateNoCollectionsMessage();
                     Toast.makeText(this, "Collection deleted", Toast.LENGTH_SHORT).show();
                 })
                 .setNegativeButton("No", null)
@@ -92,13 +98,18 @@ public class CollectionPage extends AppCompatActivity implements CollectionAdapt
     @Override
     protected void onResume() {
         super.onResume();
-
-        List<Collection> collections = CollectionManager.getAllCollections();
-        for (Collection c : collections) {
-            Log.d("COLLECTION_DEBUG", "Collection: " + c.getName() + ", posts: " + c.getPosts().size());
-        }
-
-        adapter.updateData(collections);
+        adapter.updateData(CollectionManager.getAllCollections());
+        updateNoCollectionsMessage();
     }
 
+    private void updateNoCollectionsMessage() {
+        List<Collection> collections = CollectionManager.getAllCollections();
+        if (collections.isEmpty()) {
+            textViewNoCollections.setVisibility(View.VISIBLE);
+            recyclerView.setVisibility(View.GONE);
+        } else {
+            textViewNoCollections.setVisibility(View.GONE);
+            recyclerView.setVisibility(View.VISIBLE);
+        }
+    }
 }

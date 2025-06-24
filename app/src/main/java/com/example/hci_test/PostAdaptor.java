@@ -30,12 +30,18 @@ public class PostAdaptor extends RecyclerView.Adapter<PostViewHolder> {
     List<Post> postList;
     Context context;
     private boolean collectionMode;
-    
 
-    public PostAdaptor(List<Post> postList, Context context, boolean collectionMode) {
+    private final OnPostDeletedListener onPostDeletedListener;
+
+    public interface OnPostDeletedListener {
+        void onPostDeleted(Post post);
+    }
+
+    public PostAdaptor(List<Post> postList, Context context, boolean collectionMode, OnPostDeletedListener listener) {
         this.postList = postList;
         this.context = context;
         this.collectionMode = collectionMode;
+        this.onPostDeletedListener = listener;
     }
 
 
@@ -49,8 +55,6 @@ public class PostAdaptor extends RecyclerView.Adapter<PostViewHolder> {
 
     @Override
     public void onBindViewHolder(@NonNull PostViewHolder holder, int position) {
-
-
         Post post = postList.get(position);
         Glide.with(context).load(post.getUrl())
                 .placeholder(R.drawable.img)
@@ -81,6 +85,11 @@ public class PostAdaptor extends RecyclerView.Adapter<PostViewHolder> {
 
                 postList.remove(adapterPosition);
                 notifyItemRemoved(adapterPosition);
+
+                // Notify deletion to update other lists (like allPosts)
+                if (onPostDeletedListener != null) {
+                    onPostDeletedListener.onPostDeleted(postToRemove);
+                }
             });
         } else {
             holder.addToCollectionButton.setVisibility(View.VISIBLE);
@@ -141,68 +150,6 @@ public class PostAdaptor extends RecyclerView.Adapter<PostViewHolder> {
             }
         });
     }
-
-
-    //    private void showAddToCollectionDialog(Post post) {
-//        View dialogView = LayoutInflater.from(context).inflate(R.layout.dialog_add_to_collection, null);
-//        ListView listView = dialogView.findViewById(R.id.listViewCollections);
-//        TextView newCollectionBtn = dialogView.findViewById(R.id.textViewNewCollection);
-//
-//        List<Collection> allCollections = CollectionManager.getAllCollections();
-//        CollectionChoiceAdapter adapter = new CollectionChoiceAdapter(context, allCollections);
-//        listView.setAdapter(adapter);
-//
-//        AlertDialog dialog = new AlertDialog.Builder(context)
-//                .setView(dialogView)
-//                .setPositiveButton("Save", (d, which) -> {
-//                    for (String collectionName : adapter.getSelectedNames()) {
-//                        boolean added = CollectionManager.addPostToCollection(collectionName, post);
-//                        if (added) {
-//                            Toast.makeText(context, "Saved to selected collections", Toast.LENGTH_SHORT).show();
-//                        } else {
-//                            Toast.makeText(context, "Post already exists in selected collection", Toast.LENGTH_SHORT).show();
-//                        }
-//                    }
-//                })
-//                .setNegativeButton("Cancel", null)
-//                .create();
-//
-//        dialog.show();
-//
-//        newCollectionBtn.setOnClickListener(v -> {
-//            dialog.dismiss();
-//            if (context instanceof MainActivity) {
-//                ((MainActivity) context).openNewCollectionDialog(post);
-//            }
-//        });
-//    }
-    private void showCreateCollectionDialog(Post post) {
-        View dialogView = LayoutInflater.from(context).inflate(R.layout.dialog_add_collection, null);
-        EditText editText = dialogView.findViewById(R.id.editTextCollectionName);
-
-        new AlertDialog.Builder(context)
-                .setTitle("New Collection")
-                .setView(dialogView)
-                .setPositiveButton("Save", (dialog, which) -> {
-                    String name = editText.getText().toString().trim();
-                    if (!name.isEmpty()) {
-                        boolean created = CollectionManager.createCollection(name);
-                        if (created) {
-                            CollectionManager.addPostToCollection(name, post);
-                            Toast.makeText(context, "Collection created and post added", Toast.LENGTH_SHORT).show();
-                        } else {
-                            Toast.makeText(context, "Collection already exists", Toast.LENGTH_SHORT).show();
-                        }
-                    } else {
-                        Toast.makeText(context, "Name cannot be empty", Toast.LENGTH_SHORT).show();
-                    }
-                })
-                .setNegativeButton("Cancel", null)
-                .show();
-    }
-
-
-
 
     @Override
     public int getItemCount() {

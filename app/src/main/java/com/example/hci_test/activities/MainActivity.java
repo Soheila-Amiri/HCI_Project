@@ -131,7 +131,7 @@ public class MainActivity extends AppCompatActivity {
                     runOnUiThread(new Runnable() {
                         @Override
                         public void run() {
-                            postAdaptor = new PostAdaptor(postList, MainActivity.this, false);
+                            postAdaptor = new PostAdaptor(postList, MainActivity.this, false, post -> {});
                             recyclerView.setAdapter(postAdaptor);
                             progressBar.setVisibility(View.INVISIBLE);
                             recyclerView.setLayoutManager(layoutManager);
