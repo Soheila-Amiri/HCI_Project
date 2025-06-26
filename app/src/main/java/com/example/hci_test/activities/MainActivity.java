@@ -1,12 +1,20 @@
 package com.example.hci_test.activities;
 
+import android.app.Activity;
 import android.content.Intent;
 import android.os.Bundle;
+import android.speech.RecognizerIntent;
 import android.view.View;
+import android.widget.AdapterView;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.ProgressBar;
 import android.widget.Toast;
+
+import androidx.activity.result.ActivityResult;
+import androidx.activity.result.ActivityResultCallback;
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.appcompat.app.AlertDialog;
 
 import androidx.activity.EdgeToEdge;
@@ -28,6 +36,7 @@ import org.json.JSONObject;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 import java.util.Random;
 
 import okhttp3.Call;
@@ -44,6 +53,7 @@ public class MainActivity extends AppCompatActivity {
     PostAdaptor postAdaptor;
     LinearLayoutManager layoutManager;
     ProgressBar progressBar;
+    EditText editTextSearch;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -54,11 +64,12 @@ public class MainActivity extends AppCompatActivity {
         recyclerView = findViewById(R.id.recyclerView);
         layoutManager = new LinearLayoutManager(this);
 
-        EditText editTextSearch = findViewById(R.id.editTextSearch);
+        editTextSearch = findViewById(R.id.editTextSearch);
         ImageView imageViewSearch = findViewById(R.id.imageViewSearch);
         progressBar = findViewById(R.id.progressBar);
         Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
+        ImageView imageViewMic = findViewById(R.id.imageViewMic);
 
         okHttpClient = new OkHttpClient();
 
@@ -71,11 +82,26 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
+        imageViewMic.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent intent = new Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH);
+                intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL,RecognizerIntent.LANGUAGE_MODEL_FREE_FORM);
+                intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE, Locale.getDefault());
+                intent.putExtra(RecognizerIntent.EXTRA_PROMPT,"Listening...");
+                activityResultLauncher.launch(intent);
+            }
+        });
+
         imageViewSearch.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 postList.clear();
                 String textSearch = editTextSearch.getText().toString();
+                if (textSearch.isEmpty()) {
+                    Toast.makeText(MainActivity.this, "No query has been enterd!", Toast.LENGTH_SHORT).show();
+                    return;
+                }
                 progressBar.setVisibility(View.VISIBLE);
                 makeCall(textSearch);
             }
@@ -199,5 +225,15 @@ public class MainActivity extends AppCompatActivity {
                 .show();
     }
 
-
+    ActivityResultLauncher<Intent> activityResultLauncher = registerForActivityResult(
+            new ActivityResultContracts.StartActivityForResult(),
+            new ActivityResultCallback<ActivityResult>() {
+                @Override
+                public void onActivityResult(ActivityResult result) {
+                    if (result.getResultCode() == Activity.RESULT_OK && result.getData()!=null) {
+                        ArrayList<String> d = result.getData().getStringArrayListExtra(RecognizerIntent.EXTRA_RESULTS);
+                        editTextSearch.setText(editTextSearch.getText()+" "+d.get(0));
+                    }
+                }
+            });
 }
