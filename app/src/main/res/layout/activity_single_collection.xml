@@ -53,16 +53,16 @@
     </androidx.appcompat.widget.Toolbar>
 
     <EditText
-    android:id="@+id/editTextSearch"
-    android:layout_width="0dp"
-    android:layout_height="50dp"
-    android:layout_marginStart="8dp"
-    android:layout_marginTop="16dp"
-    android:hint="Enter your query"
-    android:inputType="text"
-    app:layout_constraintTop_toBottomOf="@id/toolbar"
-    app:layout_constraintStart_toStartOf="parent"
-    app:layout_constraintEnd_toStartOf="@id/imageViewSearch" />
+        android:id="@+id/editTextSearch"
+        android:layout_width="0dp"
+        android:layout_height="50dp"
+        android:layout_marginStart="8dp"
+        android:layout_marginTop="16dp"
+        android:hint="Enter your query"
+        android:inputType="text"
+        app:layout_constraintEnd_toStartOf="@id/imageViewSearch"
+        app:layout_constraintStart_toEndOf="@+id/imageViewMicC"
+        app:layout_constraintTop_toBottomOf="@id/toolbar" />
 
     <ImageView
         android:id="@+id/imageViewSearch"
@@ -111,6 +111,16 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintVertical_bias="0.3" />
+
+    <ImageView
+        android:id="@+id/imageViewMicC"
+        android:layout_width="30dp"
+        android:layout_height="30dp"
+        android:layout_marginStart="8dp"
+        app:layout_constraintBottom_toBottomOf="@+id/editTextSearch"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="@+id/editTextSearch"
+        app:srcCompat="@drawable/ic_mic" />
 
 
 </androidx.constraintlayout.widget.ConstraintLayout>
