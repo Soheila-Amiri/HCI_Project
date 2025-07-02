@@ -59,5 +59,5 @@ dependencies {
     implementation(libs.glide)
     implementation (libs.material)
     implementation(libs.org.json)
-
+    implementation(libs.gson)
 }
