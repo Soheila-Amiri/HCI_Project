@@ -7,8 +7,11 @@ import android.os.Bundle;
 import android.speech.RecognizerIntent;
 import android.text.Editable;
 import android.text.TextWatcher;
+import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.View;
+import android.view.inputmethod.EditorInfo;
+import android.view.inputmethod.InputMethodManager;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.TextView;
@@ -98,6 +101,19 @@ public class SingleCollectionActivity extends AppCompatActivity {
             }
         });
 
+        // Hide keyboard when user presses Enter/Done/Search on the keyboard
+        editTextSearch.setOnEditorActionListener((v, actionId, event) -> {
+            if (actionId == EditorInfo.IME_ACTION_SEARCH
+                    || actionId == EditorInfo.IME_ACTION_DONE
+                    || (event != null && event.getKeyCode() == KeyEvent.KEYCODE_ENTER && event.getAction() == KeyEvent.ACTION_DOWN)) {
+
+                InputMethodManager imm = (InputMethodManager) getSystemService(Activity.INPUT_METHOD_SERVICE);
+                imm.hideSoftInputFromWindow(editTextSearch.getWindowToken(), 0);
+                return false; // let it propagate if you want further listeners, or true to consume
+            }
+            return false;
+        });
+
         ImageView imageViewMic = findViewById(R.id.imageViewMicC);
         imageViewMic.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -132,7 +148,6 @@ public class SingleCollectionActivity extends AppCompatActivity {
                 textViewNoResults.setVisibility(View.VISIBLE);
             }
         }
-
         postAdapter.notifyDataSetChanged();
     }
 
@@ -206,7 +221,15 @@ public class SingleCollectionActivity extends AppCompatActivity {
                 public void onActivityResult(ActivityResult result) {
                     if (result.getResultCode() == Activity.RESULT_OK && result.getData()!=null) {
                         ArrayList<String> d = result.getData().getStringArrayListExtra(RecognizerIntent.EXTRA_RESULTS);
-                        editTextSearch.setText(editTextSearch.getText()+" "+d.get(0));
+                        editTextSearch.setText(d.get(0));
+
+                        // Hide the keyboard after setting text from voice recognition
+                        InputMethodManager imm = (InputMethodManager) getSystemService(Activity.INPUT_METHOD_SERVICE);
+                        View view = getCurrentFocus();
+                        if (view == null) view = new View(SingleCollectionActivity.this);
+                        imm.hideSoftInputFromWindow(view.getWindowToken(), 0);
+
+                        // filterPosts(d.get(0)); // Not needed if TextWatcher is in place
                     }
                 }
             });

@@ -7,6 +7,7 @@ import android.os.Bundle;
 import android.speech.RecognizerIntent;
 import android.util.Log;
 import android.view.View;
+import android.view.inputmethod.InputMethodManager;
 import android.widget.AdapterView;
 import android.widget.EditText;
 import android.widget.ImageView;
@@ -105,14 +106,7 @@ public class MainActivity extends AppCompatActivity {
         imageViewSearch.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                postList.clear();
-                String textSearch = editTextSearch.getText().toString();
-                if (textSearch.isEmpty()) {
-                    Toast.makeText(MainActivity.this, "No query has been enterd!", Toast.LENGTH_SHORT).show();
-                    return;
-                }
-                progressBar.setVisibility(View.VISIBLE);
-                makeCall(textSearch);
+                performSearch();
             }
         });
 
@@ -185,6 +179,25 @@ public class MainActivity extends AppCompatActivity {
         openNewCollectionDialog(null);
     }
 
+    private void performSearch() {
+        // Hide the keyboard
+        InputMethodManager imm = (InputMethodManager) getSystemService(Activity.INPUT_METHOD_SERVICE);
+        View view = this.getCurrentFocus();
+        if (view == null) view = new View(this); // fallback if no focus
+        imm.hideSoftInputFromWindow(view.getWindowToken(), 0);
+
+        postList.clear();
+        String textSearch = editTextSearch.getText().toString();
+        if (textSearch.isEmpty()) {
+            Toast.makeText(MainActivity.this, "No query has been enterd!", Toast.LENGTH_SHORT).show();
+            return;
+        }
+        progressBar.setVisibility(View.VISIBLE);
+        makeCall(textSearch);
+    }
+
+
+
    /* public void openNewCollectionDialog() {
         View dialogView = getLayoutInflater().inflate(R.layout.dialog_add_collection, null);
         EditText editText = dialogView.findViewById(R.id.editTextCollectionName);
@@ -243,7 +256,9 @@ public class MainActivity extends AppCompatActivity {
                 public void onActivityResult(ActivityResult result) {
                     if (result.getResultCode() == Activity.RESULT_OK && result.getData()!=null) {
                         ArrayList<String> d = result.getData().getStringArrayListExtra(RecognizerIntent.EXTRA_RESULTS);
-                        editTextSearch.setText(editTextSearch.getText()+" "+d.get(0));
+                        //editTextSearch.setText(editTextSearch.getText()+" "+d.get(0));
+                        editTextSearch.setText(d.get(0));
+                        performSearch();
                     }
                 }
             });
