@@ -2,8 +2,10 @@ package com.example.hci_test.activities;
 
 import android.app.Activity;
 import android.content.Intent;
+import android.os.Build;
 import android.os.Bundle;
 import android.speech.RecognizerIntent;
+import android.util.Log;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.EditText;
@@ -24,6 +26,7 @@ import androidx.appcompat.widget.Toolbar;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.example.hci_test.BuildConfig;
 import com.example.hci_test.model.CollectionManager;
 import com.example.hci_test.model.Post;
 import com.example.hci_test.PostAdaptor;
@@ -41,8 +44,10 @@ import java.util.Random;
 
 import okhttp3.Call;
 import okhttp3.Callback;
+import okhttp3.MediaType;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
+import okhttp3.RequestBody;
 import okhttp3.Response;
 
 public class MainActivity extends AppCompatActivity {
@@ -150,6 +155,8 @@ public class MainActivity extends AppCompatActivity {
                             String likeNum = "" + random.nextInt(100) + 1;
                             postObject.setUserProfile(profileImagePath);
                             postObject.setLikes(likeNum);
+                            //if (postObject.getDescription().length() == 0)
+                                //imageCaptioning(postObject);
                             postList.add(postObject);
                         }
                     }
@@ -236,4 +243,59 @@ public class MainActivity extends AppCompatActivity {
                     }
                 }
             });
+
+    public void imageCaptioning(Post post) {
+        String imageUrl = post.getUrl();
+        String endpoint = "https://post-captioning.cognitiveservices.azure.com/";
+        String subscriptionKey = BuildConfig.AZURE_KEY;
+        String url = endpoint + "vision/v3.2/describe";
+
+        OkHttpClient client = new OkHttpClient();
+
+        JSONObject json = new JSONObject();
+        try {
+            json.put("url", imageUrl);
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+
+        RequestBody body = RequestBody.create(
+                json.toString(),
+                MediaType.parse("application/json")
+        );
+
+        Request request = new Request.Builder()
+                .url(url)
+                .addHeader("Ocp-Apim-Subscription-Key", subscriptionKey)
+                .addHeader("Content-Type", "application/json")
+                .post(body)
+                .build();
+
+        client.newCall(request).enqueue(new Callback() {
+            @Override
+            public void onFailure(Call call, IOException e) {
+                e.printStackTrace();
+            }
+
+            @Override
+            public void onResponse(Call call, Response response) throws IOException {
+                if (response.isSuccessful()) {
+                    String responseBody = response.body().string();
+                    try {
+                        JSONObject jsonResponse = new JSONObject(responseBody);
+                        JSONArray captions = jsonResponse.getJSONObject("description").getJSONArray("captions");
+                        if (captions.length() > 0) {
+                            String caption = captions.getJSONObject(0).getString("text");
+                            Log.d("Caption", "Caption: " + caption);
+                            post.setDescription(caption);
+                        }
+                    } catch (JSONException e) {
+                        e.printStackTrace();
+                    }
+                } else {
+                    Log.e("AzureError", response.body().string());
+                }
+            }
+        });
+    }
 }
