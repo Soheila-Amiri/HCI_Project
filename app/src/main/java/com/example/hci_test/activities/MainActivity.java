@@ -63,6 +63,9 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
+        CollectionManager.initialize(getApplicationContext());
+
         EdgeToEdge.enable(this);
         setContentView(R.layout.activity_main);
 
@@ -90,6 +93,7 @@ public class MainActivity extends AppCompatActivity {
         imageViewMic.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                editTextSearch.setText("");
                 Intent intent = new Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH);
                 intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL,RecognizerIntent.LANGUAGE_MODEL_FREE_FORM);
                 intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE, Locale.getDefault());

@@ -79,6 +79,7 @@ public class PostAdaptor extends RecyclerView.Adapter<PostViewHolder> {
                 for (Collection collection : CollectionManager.getAllCollections()) {
                     if (collection.getPosts().contains(postToRemove)) {
                         collection.getPosts().remove(postToRemove);
+                        CollectionManager.persistCollections();
                         break;
                     }
                 }

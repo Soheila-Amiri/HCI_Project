@@ -1,5 +1,9 @@
 package com.example.hci_test.model;
 
+import android.content.Context;
+
+import com.example.hci_test.JsonFileHelper;
+
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -7,10 +11,24 @@ import java.util.List;
 public class CollectionManager {
 
     private static final LinkedHashMap<String, Collection> collections = new LinkedHashMap<>();
+    private static JsonFileHelper helper;
+    private static boolean isInitialized = false;
 
+    public static void initialize(Context context) {
+        if (isInitialized) return;
+        helper = new JsonFileHelper(context);
+        List<Collection> loadedCollections = helper.loadCollections();
+        if (loadedCollections != null) {
+            for (Collection c : loadedCollections) {
+                collections.put(c.getName(), c);
+            }
+        }
+        isInitialized = true;
+    }
     public static boolean createCollection(String name) {
         if (collections.containsKey(name)) return false;
         collections.put(name, new Collection(name));
+        saveCollectionsToJson();
         return true;
     }
 
@@ -24,6 +42,7 @@ public class CollectionManager {
 
     public static void removeCollection(String name) {
         collections.remove(name);
+        saveCollectionsToJson();
     }
 
     public static List<String> getAllCollectionNames() {
@@ -40,6 +59,7 @@ public class CollectionManager {
         Collection collection = collections.get(collectionName);
         if (collection.getPosts().contains(post)) return false;
         collection.addPost(post);
+        saveCollectionsToJson();
         return true;
     }
 
@@ -49,7 +69,19 @@ public class CollectionManager {
         Collection collection = collections.remove(oldName);
         collection.setName(newName);
         collections.put(newName, collection);
+        saveCollectionsToJson();
         return true;
     }
 
+
+    public static void saveCollectionsToJson() {
+        if (helper != null) {
+            helper.saveCollections(new ArrayList<>(collections.values()));
+        }
+    }
+    public static void persistCollections() {
+        if (helper != null) {
+            helper.saveCollections(new ArrayList<>(collections.values()));
+        }
+    }
 }
