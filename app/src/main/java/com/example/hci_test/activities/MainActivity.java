@@ -155,8 +155,8 @@ public class MainActivity extends AppCompatActivity {
                             String likeNum = "" + random.nextInt(100) + 1;
                             postObject.setUserProfile(profileImagePath);
                             postObject.setLikes(likeNum);
-                            //if (postObject.getDescription().length() == 0)
-                                //imageCaptioning(postObject);
+                            if (postObject.getDescription().length() == 0)
+                               imageCaptioning(postObject);
                             postList.add(postObject);
                         }
                     }
