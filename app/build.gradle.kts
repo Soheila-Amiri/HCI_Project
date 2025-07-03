@@ -60,4 +60,6 @@ dependencies {
     implementation (libs.material)
     implementation(libs.org.json)
     implementation(libs.gson)
+    annotationProcessor(libs.glide.compiler)
+    implementation(libs.firebase.storage)
 }

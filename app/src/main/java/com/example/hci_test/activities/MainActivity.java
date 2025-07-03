@@ -1,7 +1,10 @@
 package com.example.hci_test.activities;
 
 import android.app.Activity;
+import android.content.Context;
 import android.content.Intent;
+import android.graphics.Bitmap;
+import android.graphics.drawable.Drawable;
 import android.os.Build;
 import android.os.Bundle;
 import android.speech.RecognizerIntent;
@@ -18,6 +21,7 @@ import androidx.activity.result.ActivityResult;
 import androidx.activity.result.ActivityResultCallback;
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
+import androidx.annotation.Nullable;
 import androidx.appcompat.app.AlertDialog;
 
 import androidx.activity.EdgeToEdge;
@@ -27,21 +31,29 @@ import androidx.appcompat.widget.Toolbar;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.bumptech.glide.Glide;
+import com.bumptech.glide.request.target.CustomTarget;
+import com.bumptech.glide.request.transition.Transition;
 import com.example.hci_test.BuildConfig;
 import com.example.hci_test.model.CollectionManager;
 import com.example.hci_test.model.Post;
 import com.example.hci_test.PostAdaptor;
 import com.example.hci_test.R;
+import com.google.firebase.storage.FirebaseStorage;
+import com.google.firebase.storage.StorageReference;
+import com.google.firebase.storage.UploadTask;
 
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 import java.util.Random;
+import java.util.UUID;
 
 import okhttp3.Call;
 import okhttp3.Callback;
@@ -155,6 +167,7 @@ public class MainActivity extends AppCompatActivity {
                             postObject.setLikes(likeNum);
                             if (postObject.getDescription().length() == 0)
                                imageCaptioning(postObject);
+                            postObject.setUrl(imageUrl);
                             postList.add(postObject);
                         }
                     }
@@ -305,7 +318,7 @@ public class MainActivity extends AppCompatActivity {
                         JSONArray captions = jsonResponse.getJSONObject("description").getJSONArray("captions");
                         if (captions.length() > 0) {
                             String caption = captions.getJSONObject(0).getString("text");
-                            Log.d("Caption", "Caption: " + caption);
+                            //Log.d("Caption", "Caption: " + caption);
                             post.setDescription(caption);
                         }
                     } catch (JSONException e) {
@@ -317,4 +330,37 @@ public class MainActivity extends AppCompatActivity {
             }
         });
     }
+    public void compressAndCaption(Post post, Context context) {
+        String originalUrl = post.getUrl();
+
+        Glide.with(context)
+                .asBitmap()
+                .load(originalUrl)
+                .into(new CustomTarget<Bitmap>() {
+                    @Override
+                    public void onResourceReady(@NonNull Bitmap resource, @Nullable Transition<? super Bitmap> transition) {
+                        Bitmap resized = Bitmap.createScaledBitmap(resource, 640, 480, true);
+
+                        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+                        resized.compress(Bitmap.CompressFormat.JPEG, 80, baos); // 80% quality
+                        byte[] imageData = baos.toByteArray();
+
+                        // Upload to Firebase
+                        FirebaseStorage storage = FirebaseStorage.getInstance();
+                        StorageReference ref = storage.getReference().child("compressed_images/" + UUID.randomUUID() + ".jpg");
+                        UploadTask uploadTask = ref.putBytes(imageData);
+
+                        uploadTask.addOnSuccessListener(taskSnapshot ->
+                                ref.getDownloadUrl().addOnSuccessListener(uri -> {
+                                    post.setUrl(uri.toString());
+                                    imageCaptioning(post);
+                                })
+                        ).addOnFailureListener(e -> Log.e("FirebaseUpload", "Upload failed", e));
+                    }
+
+                    @Override
+                    public void onLoadCleared(@Nullable Drawable placeholder) {}
+                });
+    }
+
 }
