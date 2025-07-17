@@ -1,33 +1,60 @@
 package com.example.hci_test.activities;
 
 import android.annotation.SuppressLint;
+import android.app.Activity;
+import android.content.Intent;
 import android.os.Bundle;
+import android.speech.RecognizerIntent;
+import android.text.Editable;
+import android.text.TextWatcher;
 import android.view.LayoutInflater;
 import android.view.View;
+import android.view.inputmethod.InputMethodManager;
+import android.widget.CheckBox;
 import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
 import android.widget.ImageView;
 
+import androidx.activity.result.ActivityResult;
+import androidx.activity.result.ActivityResultCallback;
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.example.hci_test.PostAdaptor;
 import com.example.hci_test.R;
 import com.example.hci_test.adapter.CollectionAdapter;
 import com.example.hci_test.model.Collection;
 import com.example.hci_test.model.CollectionManager;
+import com.example.hci_test.model.Post;
+import com.google.android.gms.common.server.converter.StringToIntConverter;
 
+import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Locale;
 import java.util.Objects;
+import java.util.Set;
 
 public class CollectionPage extends AppCompatActivity implements CollectionAdapter.OnCollectionClickListener {
 
     private RecyclerView recyclerView;
     private CollectionAdapter adapter;
     private TextView textViewNoCollections;
+
+    private EditText editTextSearchCo;
+    private ImageView imageViewMicCo;
+    private CheckBox checkBoxPosts;
+    private TextView textViewNoR;
+
+    private RecyclerView recyclerViewPosts;
+    private PostAdaptor postAdaptor;
+    List<Post> allPosts;
 
     @SuppressLint("MissingInflatedId")
     @Override
@@ -39,6 +66,23 @@ public class CollectionPage extends AppCompatActivity implements CollectionAdapt
         setSupportActionBar(toolbar);
         Objects.requireNonNull(getSupportActionBar()).setDisplayShowTitleEnabled(false);
 
+        checkBoxPosts = findViewById(R.id.checkBoxPosts);
+        imageViewMicCo = findViewById(R.id.imageViewMicCo);
+        editTextSearchCo = findViewById(R.id.editTextSearchCo);
+        textViewNoR = findViewById(R.id.textViewNoPosts);
+
+        imageViewMicCo.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                editTextSearchCo.setText("");
+                Intent intent = new Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH);
+                intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL,RecognizerIntent.LANGUAGE_MODEL_FREE_FORM);
+                intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE, Locale.getDefault());
+                intent.putExtra(RecognizerIntent.EXTRA_PROMPT,"Listening...");
+                activityResultLauncher.launch(intent);
+            }
+        });
+
         findViewById(R.id.imageViewBack).setOnClickListener(v -> finish());
 
         findViewById(R.id.imageViewAddCollection).setOnClickListener(v -> showAddCollectionDialog());
@@ -48,8 +92,56 @@ public class CollectionPage extends AppCompatActivity implements CollectionAdapt
         recyclerView = findViewById(R.id.recyclerView);
         recyclerView.setLayoutManager(new GridLayoutManager(this, 2));
 
+        recyclerViewPosts = findViewById(R.id.recyclerViewPosts);
+        recyclerViewPosts.setLayoutManager(new GridLayoutManager(this, 2));
+
         adapter = new CollectionAdapter(CollectionManager.getAllCollections(), this);
         recyclerView.setAdapter(adapter);
+
+        List<Collection> allCollections = CollectionManager.getAllCollections();
+        Set<Post> uniquePostsSet = new HashSet<>();
+
+        for (Collection collection : allCollections) {
+            uniquePostsSet.addAll(collection.getPosts());
+        }
+
+
+        allPosts = new ArrayList<>(uniquePostsSet);
+        postAdaptor = new PostAdaptor(allPosts, this, false, null);
+        recyclerViewPosts.setAdapter(postAdaptor);
+
+        checkBoxPosts.setOnCheckedChangeListener((buttonView, isChecked) -> {
+            if (isChecked){
+                recyclerViewPosts.setVisibility(View.VISIBLE);
+                recyclerView.setVisibility(View.GONE);
+                postAdaptor.filter(editTextSearchCo.getText().toString());
+            }
+            else{
+                recyclerViewPosts.setVisibility(View.GONE);
+                recyclerView.setVisibility(View.VISIBLE);
+                adapter.filter(editTextSearchCo.getText().toString());
+            }
+        });
+        editTextSearchCo.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
+
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) {
+                if (checkBoxPosts.isChecked()) {
+                    postAdaptor.filter(s.toString());
+                } else {
+                    adapter.filter(s.toString());
+                }
+                if (postAdaptor.getItemCount() == 0 || adapter.getItemCount() == 0) {
+                    textViewNoR.setVisibility(View.VISIBLE);
+                } else {
+                    textViewNoR.setVisibility(View.GONE);
+                }
+            }
+            @Override
+            public void afterTextChanged(Editable s) {}
+        });
 
         updateNoCollectionsMessage();
     }
@@ -112,4 +204,24 @@ public class CollectionPage extends AppCompatActivity implements CollectionAdapt
             recyclerView.setVisibility(View.VISIBLE);
         }
     }
+
+    ActivityResultLauncher<Intent> activityResultLauncher = registerForActivityResult(
+            new ActivityResultContracts.StartActivityForResult(),
+            new ActivityResultCallback<ActivityResult>() {
+                @Override
+                public void onActivityResult(ActivityResult result) {
+                    if (result.getResultCode() == Activity.RESULT_OK && result.getData()!=null) {
+                        ArrayList<String> d = result.getData().getStringArrayListExtra(RecognizerIntent.EXTRA_RESULTS);
+                        editTextSearchCo.setText(d.get(0));
+
+                        // Hide the keyboard after setting text from voice recognition
+                        InputMethodManager imm = (InputMethodManager) getSystemService(Activity.INPUT_METHOD_SERVICE);
+                        View view = getCurrentFocus();
+                        if (view == null) view = new View(CollectionPage.this);
+                        imm.hideSoftInputFromWindow(view.getWindowToken(), 0);
+
+                        // filterPosts(d.get(0)); // Not needed if TextWatcher is in place
+                    }
+                }
+            });
 }

@@ -14,13 +14,16 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.bumptech.glide.Glide;
 import com.example.hci_test.R;
 import com.example.hci_test.model.Collection;
+import com.example.hci_test.model.Post;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class CollectionAdapter extends RecyclerView.Adapter<CollectionAdapter.ViewHolder> {
 
     private List<Collection> collections;
     private final OnCollectionClickListener listener;
+    private List<Collection> allCollections;
 
     public interface OnCollectionClickListener {
         void onCollectionLongPressed(String name);
@@ -28,7 +31,8 @@ public class CollectionAdapter extends RecyclerView.Adapter<CollectionAdapter.Vi
 
 
     public CollectionAdapter(List<Collection> collections, OnCollectionClickListener listener) {
-        this.collections = collections;
+        this.collections = new ArrayList<>(collections);
+        this.allCollections = new ArrayList<>(collections);
         this.listener = listener;
     }
 
@@ -92,5 +96,22 @@ public class CollectionAdapter extends RecyclerView.Adapter<CollectionAdapter.Vi
             collectionCount = itemView.findViewById(R.id.textViewCollectionCount);
             collectionImage = itemView.findViewById(R.id.imageViewCollection);
         }
+    }
+
+    public void filter(String query){
+        collections.clear();
+        if (query.isEmpty()){
+            collections.addAll(allCollections);
+        } else {
+            for (Collection collection : allCollections) {
+                for (Post post : collection.getPosts()) {
+                    if (post.getDescription().toLowerCase().contains(query.toLowerCase())) {
+                        collections.add(collection);
+                        break;
+                    }
+                }
+            }
+        }
+        notifyDataSetChanged();
     }
 }

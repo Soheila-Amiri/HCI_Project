@@ -85,19 +85,19 @@ public class SingleCollectionActivity extends AppCompatActivity {
         allPosts = new ArrayList<>(collection.getPosts());
         Collections.reverse(allPosts); // newest first
 
+        editTextSearch = findViewById(R.id.editTextSearch);
         postAdapter = new PostAdaptor(reversedPosts, this, true, post -> {
             allPosts.remove(post);
-            filterPosts(editTextSearch.getText().toString()); // update after deletion
         });
         recyclerView.setAdapter(postAdapter);
 
-        editTextSearch = findViewById(R.id.editTextSearch);
+
         editTextSearch.addTextChangedListener(new TextWatcher() {
             @Override public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
             @Override public void afterTextChanged(Editable s) {}
             @Override
             public void onTextChanged(CharSequence s, int start, int before, int count) {
-                filterPosts(s.toString());
+                postAdapter.filter(s.toString());
             }
         });
 
@@ -128,27 +128,6 @@ public class SingleCollectionActivity extends AppCompatActivity {
         });
 
         updateEmptyCollectionMessage();
-    }
-
-    private void filterPosts(String query) {
-        reversedPosts.clear();
-        textViewNoResults.setVisibility(View.GONE);
-        textViewEmptyCollection.setVisibility(View.GONE);
-
-        if (query.isEmpty()) {
-            reversedPosts.addAll(allPosts);
-            updateEmptyCollectionMessage();
-        } else {
-            for (Post post : allPosts) {
-                if (post.getDescription().toLowerCase().contains(query.toLowerCase())) {
-                    reversedPosts.add(post);
-                }
-            }
-            if (reversedPosts.isEmpty()) {
-                textViewNoResults.setVisibility(View.VISIBLE);
-            }
-        }
-        postAdapter.notifyDataSetChanged();
     }
 
     private void updateEmptyCollectionMessage() {
