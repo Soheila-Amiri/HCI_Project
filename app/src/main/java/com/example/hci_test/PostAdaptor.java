@@ -14,6 +14,7 @@ import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AlertDialog; // ✅ Import corect
+import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.bumptech.glide.Glide;
@@ -23,6 +24,7 @@ import com.example.hci_test.model.Collection;
 import com.example.hci_test.model.CollectionManager;
 import com.example.hci_test.model.Post;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 
@@ -31,6 +33,8 @@ public class PostAdaptor extends RecyclerView.Adapter<PostViewHolder> {
     Context context;
     private boolean collectionMode;
 
+    List<Post> allPostList;
+
     private final OnPostDeletedListener onPostDeletedListener;
 
     public interface OnPostDeletedListener {
@@ -38,13 +42,12 @@ public class PostAdaptor extends RecyclerView.Adapter<PostViewHolder> {
     }
 
     public PostAdaptor(List<Post> postList, Context context, boolean collectionMode, OnPostDeletedListener listener) {
-        this.postList = postList;
+        this.postList = new ArrayList<>(postList);
+        this.allPostList = new ArrayList<>(postList);
         this.context = context;
         this.collectionMode = collectionMode;
         this.onPostDeletedListener = listener;
     }
-
-
 
     @NonNull
     @Override
@@ -155,5 +158,19 @@ public class PostAdaptor extends RecyclerView.Adapter<PostViewHolder> {
     @Override
     public int getItemCount() {
         return postList.size();
+    }
+
+    public void filter(String query) {
+        postList.clear();
+        if (query.isEmpty()) {
+            postList.addAll(allPostList);
+        } else {
+            for (Post post : allPostList) {
+                if (post.getDescription().toLowerCase().contains(query.toLowerCase())) {
+                    postList.add(post);
+                }
+            }
+        }
+        notifyDataSetChanged();
     }
 }

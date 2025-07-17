@@ -165,8 +165,8 @@ public class MainActivity extends AppCompatActivity {
                             String likeNum = "" + random.nextInt(100) + 1;
                             postObject.setUserProfile(profileImagePath);
                             postObject.setLikes(likeNum);
-                            if (postObject.getDescription().length() == 0)
-                               imageCaptioning(postObject);
+                            //if (postObject.getDescription().length() == 0)
+                               //imageCaptioning(postObject);
                             postObject.setUrl(imageUrl);
                             postList.add(postObject);
                         }
@@ -344,8 +344,7 @@ public class MainActivity extends AppCompatActivity {
                         ByteArrayOutputStream baos = new ByteArrayOutputStream();
                         resized.compress(Bitmap.CompressFormat.JPEG, 80, baos); // 80% quality
                         byte[] imageData = baos.toByteArray();
-
-                        // Upload to Firebase
+                        
                         FirebaseStorage storage = FirebaseStorage.getInstance();
                         StorageReference ref = storage.getReference().child("compressed_images/" + UUID.randomUUID() + ".jpg");
                         UploadTask uploadTask = ref.putBytes(imageData);
