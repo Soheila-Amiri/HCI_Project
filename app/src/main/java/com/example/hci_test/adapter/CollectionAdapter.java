@@ -38,7 +38,8 @@ public class CollectionAdapter extends RecyclerView.Adapter<CollectionAdapter.Vi
 
     @SuppressLint("NotifyDataSetChanged")
     public void updateData(List<Collection> newCollections) {
-        this.collections = newCollections;
+        this.collections.clear();
+        this.collections.addAll(newCollections);
         notifyDataSetChanged();
     }
 

@@ -13,6 +13,7 @@ import android.widget.TextView;
 import com.bumptech.glide.Glide;
 import com.example.hci_test.R;
 import com.example.hci_test.model.Collection;
+import com.example.hci_test.model.Post;
 
 import java.util.HashSet;
 import java.util.List;
@@ -23,9 +24,15 @@ public class CollectionChoiceAdapter extends BaseAdapter {
     private final List<Collection> collections;
     private final Set<String> selectedNames = new HashSet<>();
 
-    public CollectionChoiceAdapter(Context context, List<Collection> collections) {
+    public CollectionChoiceAdapter(Context context, List<Collection> collections, Post post) {
         this.context = context;
         this.collections = collections;
+
+        for (Collection collection : collections) {
+            if (collection.getPosts().contains(post)) {
+                selectedNames.add(collection.getName());
+            }
+        }
     }
 
     @Override
@@ -59,7 +66,7 @@ public class CollectionChoiceAdapter extends BaseAdapter {
         checkBox.setOnCheckedChangeListener(null); // prevent callback triggers on recycling
         checkBox.setChecked(selectedNames.contains(collection.getName()));
 
-        // ✅ Keep track when the checkbox is toggled
+        // Keep track when the checkbox is toggled
         checkBox.setOnCheckedChangeListener((buttonView, isChecked) -> {
             if (isChecked) {
                 selectedNames.add(collection.getName());
@@ -68,11 +75,11 @@ public class CollectionChoiceAdapter extends BaseAdapter {
             }
         });
 
-        // ✅ Also toggle checkbox when the row is clicked
-        convertView.setOnClickListener(v -> {
+        convertView.setOnClickListener(v -> checkBox.setChecked(!checkBox.isChecked()));
+        /*convertView.setOnClickListener(v -> {
             boolean newState = !checkBox.isChecked();
             checkBox.setChecked(newState); // triggers listener above
-        });
+        });*/
 
         String thumbnail = collection.getThumbnailUrl();
         if ("placeholder".equals(thumbnail)) {
