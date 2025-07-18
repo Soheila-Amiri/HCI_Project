@@ -100,20 +100,20 @@ public class CollectionPage extends AppCompatActivity implements CollectionAdapt
 
         List<Collection> allCollections = CollectionManager.getAllCollections();
         Set<Post> uniquePostsSet = new HashSet<>();
-
         for (Collection collection : allCollections) {
             uniquePostsSet.addAll(collection.getPosts());
         }
-
-
         allPosts = new ArrayList<>(uniquePostsSet);
-        postAdaptor = new PostAdaptor(allPosts, this, false, null);
-        recyclerViewPosts.setAdapter(postAdaptor);
 
         checkBoxPosts.setOnCheckedChangeListener((buttonView, isChecked) -> {
             if (isChecked){
                 recyclerViewPosts.setVisibility(View.VISIBLE);
                 recyclerView.setVisibility(View.GONE);
+
+                refreshAllPostsView();
+
+                postAdaptor = new PostAdaptor(allPosts, this, false, post -> refreshAllPostsView());
+                recyclerViewPosts.setAdapter(postAdaptor);
                 postAdaptor.filter(editTextSearchCo.getText().toString());
             }
             else{
@@ -133,11 +133,11 @@ public class CollectionPage extends AppCompatActivity implements CollectionAdapt
                 } else {
                     adapter.filter(s.toString());
                 }
-                if (postAdaptor.getItemCount() == 0 || adapter.getItemCount() == 0) {
+                /*if (postAdaptor.getItemCount() == 0 || adapter.getItemCount() == 0) {
                     textViewNoR.setVisibility(View.VISIBLE);
                 } else {
                     textViewNoR.setVisibility(View.GONE);
-                }
+                }*/
             }
             @Override
             public void afterTextChanged(Editable s) {}
@@ -192,6 +192,10 @@ public class CollectionPage extends AppCompatActivity implements CollectionAdapt
         super.onResume();
         adapter.updateData(CollectionManager.getAllCollections());
         updateNoCollectionsMessage();
+
+        if (checkBoxPosts.isChecked()) {
+            refreshAllPostsView();
+        }
     }
 
     private void updateNoCollectionsMessage() {
@@ -224,4 +228,20 @@ public class CollectionPage extends AppCompatActivity implements CollectionAdapt
                     }
                 }
             });
+
+    public void refreshAllPostsView() {
+        List<Collection> updatedCollections = CollectionManager.getAllCollections();
+        Set<Post> updatedUniquePosts = new HashSet<>();
+
+        for (Collection collection : updatedCollections) {
+            updatedUniquePosts.addAll(collection.getPosts());
+        }
+
+        allPosts.clear();
+        allPosts.addAll(updatedUniquePosts);
+        if (postAdaptor != null) {
+            postAdaptor.updateData(allPosts);
+            postAdaptor.filter(editTextSearchCo.getText().toString());
+        }
+    }
 }

@@ -87,7 +87,13 @@ public class SingleCollectionActivity extends AppCompatActivity {
 
         editTextSearch = findViewById(R.id.editTextSearch);
         postAdapter = new PostAdaptor(reversedPosts, this, true, post -> {
+            collection.getPosts().remove(post);
+            CollectionManager.persistCollections(); // persist the updated collection
+
             allPosts.remove(post);
+            reversedPosts.remove(post);
+            postAdapter.updateData(reversedPosts);
+            updateEmptyCollectionMessage();
         });
         recyclerView.setAdapter(postAdapter);
 

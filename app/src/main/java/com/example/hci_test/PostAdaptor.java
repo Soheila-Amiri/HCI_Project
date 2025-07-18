@@ -5,6 +5,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
+import android.widget.CheckBox;
 import android.widget.EditText;
 import android.widget.FrameLayout;
 import android.widget.ListView;
@@ -13,7 +14,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
-import androidx.appcompat.app.AlertDialog; // ✅ Import corect
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.RecyclerView;
 
@@ -27,6 +28,7 @@ import com.example.hci_test.model.Post;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
+import java.util.Set;
 
 public class PostAdaptor extends RecyclerView.Adapter<PostViewHolder> {
     List<Post> postList;
@@ -108,7 +110,7 @@ public class PostAdaptor extends RecyclerView.Adapter<PostViewHolder> {
         TextView newCollectionBtn = dialogView.findViewById(R.id.textViewNewCollection);
 
         List<Collection> allCollections = CollectionManager.getAllCollections();
-        CollectionChoiceAdapter adapter = new CollectionChoiceAdapter(context, allCollections);
+        CollectionChoiceAdapter adapter = new CollectionChoiceAdapter(context, allCollections, post);
         listView.setAdapter(adapter);
 
         AlertDialog dialog = new AlertDialog.Builder(context)
@@ -120,29 +122,42 @@ public class PostAdaptor extends RecyclerView.Adapter<PostViewHolder> {
         dialog.show();
 
         dialog.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener(v -> {
-            boolean anySelected = false;
-            boolean anySaved = false;
-            boolean anyDuplicate = false;
+            Set<String> selectedNames = adapter.getSelectedNames();
 
-            for (String collectionName : adapter.getSelectedNames()) {
-                anySelected = true;
-                boolean added = CollectionManager.addPostToCollection(collectionName, post);
-                if (added) {
-                    anySaved = true;
-                } else {
-                    anyDuplicate = true;
+            boolean anyChanges = false;
+
+            for (Collection collection : allCollections) {
+                String name = collection.getName();
+                boolean contains = collection.getPosts().contains(post);
+                boolean shouldContain = selectedNames.contains(name);
+
+                if (shouldContain && !contains) {
+                    collection.getPosts().add(post);
+                    anyChanges = true;
+                } else if (!shouldContain && contains) {
+                    collection.getPosts().remove(post);
+                    anyChanges = true;
                 }
             }
 
-            if (!anySelected) {
-                Toast.makeText(context, "No collections selected", Toast.LENGTH_SHORT).show();
+            if (anyChanges) {
+                CollectionManager.persistCollections();
+                boolean postIsGone = true;
+                for (Collection collection : allCollections) {
+                    if (collection.getPosts().contains(post)) {
+                        postIsGone = false;
+                        break;
+                    }
+                }
+
+                if (postIsGone && onPostDeletedListener != null) {
+                    onPostDeletedListener.onPostDeleted(post);
+                }
+
+                Toast.makeText(context, "Changes saved", Toast.LENGTH_SHORT).show();
+                dialog.dismiss();
             } else {
-                if (anySaved) {
-                    Toast.makeText(context, "Post saved successfully", Toast.LENGTH_SHORT).show();
-                }
-                if (anyDuplicate) {
-                    Toast.makeText(context, "Post already exists in one or more collections", Toast.LENGTH_SHORT).show();
-                }
+                Toast.makeText(context, "No changes made", Toast.LENGTH_SHORT).show();
                 dialog.dismiss();
             }
         });
@@ -171,6 +186,12 @@ public class PostAdaptor extends RecyclerView.Adapter<PostViewHolder> {
                 }
             }
         }
+        notifyDataSetChanged();
+    }
+
+    public void updateData(List<Post> newPosts) {
+        this.postList = new ArrayList<>(newPosts);
+        this.allPostList = new ArrayList<>(newPosts);
         notifyDataSetChanged();
     }
 }
