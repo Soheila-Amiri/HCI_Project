@@ -1,9 +1,19 @@
 package com.example.hci_test;
 
+import static androidx.activity.result.ActivityResultCallerKt.registerForActivityResult;
+import static androidx.core.app.ActivityCompat.startActivityForResult;
+
+import android.app.Activity;
+import android.content.ActivityNotFoundException;
 import android.content.Context;
+import android.content.Intent;
+import android.speech.RecognizerIntent;
+import android.view.GestureDetector;
 import android.view.LayoutInflater;
+import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.inputmethod.InputMethodManager;
 import android.widget.ArrayAdapter;
 import android.widget.CheckBox;
 import android.widget.EditText;
@@ -13,6 +23,10 @@ import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import androidx.activity.result.ActivityResult;
+import androidx.activity.result.ActivityResultCallback;
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
@@ -101,6 +115,18 @@ public class PostAdaptor extends RecyclerView.Adapter<PostViewHolder> {
             holder.addToCollectionButton.setVisibility(View.VISIBLE);
             holder.deleteButton.setVisibility(View.GONE);
         }
+
+        GestureDetector gestureDetector = new GestureDetector(context, new GestureDetector.SimpleOnGestureListener() {
+            @Override
+            public boolean onDoubleTap(MotionEvent e) {
+                if (context instanceof MainActivity) {
+                    ((MainActivity) context).startVoiceInputForPost(post);
+                }
+                return true;
+            }
+        });
+
+        holder.imageView.setOnTouchListener((v, event) -> gestureDetector.onTouchEvent(event));
 
     }
 
