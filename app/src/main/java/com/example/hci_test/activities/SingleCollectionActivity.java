@@ -29,6 +29,7 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.hci_test.PostAdaptor;
 import com.example.hci_test.R;
+import com.example.hci_test.adapter.CollectionChoiceAdapter;
 import com.example.hci_test.model.Collection;
 import com.example.hci_test.model.CollectionManager;
 import com.example.hci_test.model.Post;
@@ -37,10 +38,14 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 public class SingleCollectionActivity extends AppCompatActivity {
 
     public static final String EXTRA_COLLECTION_NAME = "collection_name";
+    private ActivityResultLauncher<Intent> speechLauncher;
+    private Collection currentCollectionForVoice;
 
     private Collection collection;
     private PostAdaptor postAdapter;
@@ -57,6 +62,18 @@ public class SingleCollectionActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_single_collection);
 
+        speechLauncher = registerForActivityResult(
+                new ActivityResultContracts.StartActivityForResult(),
+                result -> {
+                    if (result.getResultCode() == RESULT_OK && result.getData() != null) {
+                        ArrayList<String> spokenText = result.getData().getStringArrayListExtra(RecognizerIntent.EXTRA_RESULTS);
+                        if (spokenText != null && !spokenText.isEmpty()) {
+                            handleVoiceCommand(spokenText.get(0), currentCollectionForVoice);
+                        }
+                    }
+                }
+        );
+
         String collectionName = getIntent().getStringExtra(EXTRA_COLLECTION_NAME);
         collection = CollectionManager.getCollectionByName(collectionName);
 
@@ -69,6 +86,13 @@ public class SingleCollectionActivity extends AppCompatActivity {
 
         textViewTitle = findViewById(R.id.textViewCollection);
         textViewTitle.setText(collection.getName());
+
+        textViewTitle.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                startVoiceInputForCollection(collection);
+            }
+        });
 
         ImageView settings = findViewById(R.id.imageViewCollectionSettings);
         settings.setOnClickListener(v -> showPopupMenu());
@@ -218,4 +242,43 @@ public class SingleCollectionActivity extends AppCompatActivity {
                     }
                 }
             });
+
+
+    public void startVoiceInputForCollection(Collection collection) {
+        currentCollectionForVoice = collection;
+
+        Intent intent = new Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH);
+        intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL, RecognizerIntent.LANGUAGE_MODEL_FREE_FORM);
+        intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE, Locale.getDefault());
+        intent.putExtra(RecognizerIntent.EXTRA_PROMPT, "Say: Rename collection name to newCollectionName or delete the collection");
+
+        speechLauncher.launch(intent);
+    }
+
+    private void handleVoiceCommand(String command, Collection collection) {
+        if (command.toLowerCase().startsWith("rename collection name to")) {
+            String collectionName = command.toLowerCase().replace("rename collection name to", "").trim();
+            List<String> allCollectionNames = CollectionManager.getAllCollectionNames();
+            String currentCollectionName = collection.getName();
+            if (collectionName.isEmpty()) {
+                Toast.makeText(this, "Please enter the new Collection Name", Toast.LENGTH_SHORT).show();
+            } else {
+                if (!collectionName.equals(currentCollectionName) && allCollectionNames.contains(collectionName)) {
+                    Toast.makeText(this, "This name is already in use of another collection. Try again!", Toast.LENGTH_SHORT).show();
+                } else {
+                    CollectionManager.renameCollection(currentCollectionName, collectionName);
+                    textViewTitle.setText(collectionName);
+                }
+            }
+
+        } else if (command.toLowerCase().startsWith("delete collection") || command.toLowerCase().startsWith("delete the collection")) {
+
+            CollectionManager.removeCollection(collection.getName());
+            Toast.makeText(this, "Collection deleted", Toast.LENGTH_SHORT).show();
+            finish();
+
+        } else {
+            Toast.makeText(this, "Unrecognized voice command", Toast.LENGTH_SHORT).show();
+        }
+    }
 }

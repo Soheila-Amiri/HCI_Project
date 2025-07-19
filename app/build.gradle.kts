@@ -19,6 +19,7 @@ android {
     buildFeatures {
         buildConfig = true
     }
+
     namespace = "com.example.hci_test"
     compileSdk = 35
 
