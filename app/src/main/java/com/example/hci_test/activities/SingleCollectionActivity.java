@@ -120,6 +120,8 @@ public class SingleCollectionActivity extends AppCompatActivity {
             updateEmptyCollectionMessage();
         });
         recyclerView.setAdapter(postAdapter);
+        editTextSearch.setText(CollectionPage.searchedText);
+        postAdapter.filter(editTextSearch.getText().toString());
 
 
         editTextSearch.addTextChangedListener(new TextWatcher() {

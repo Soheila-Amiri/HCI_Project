@@ -56,6 +56,7 @@ public class CollectionPage extends AppCompatActivity implements CollectionAdapt
     private PostAdaptor postAdaptor;
     private List<Post> allPosts;
     private List<Collection> allCollections;
+    public static String searchedText;
 
     private ActivityResultLauncher<Intent> speechLauncher;
 
@@ -158,6 +159,7 @@ public class CollectionPage extends AppCompatActivity implements CollectionAdapt
                 if (checkBoxPosts.isChecked()) {
                     postAdaptor.filter(s.toString());
                 } else {
+                    searchedText = editTextSearchCo.getText().toString();
                     adapter.filter(s.toString());
                 }
                 /*if (postAdaptor.getItemCount() == 0 || adapter.getItemCount() == 0) {
@@ -288,7 +290,7 @@ public class CollectionPage extends AppCompatActivity implements CollectionAdapt
         Intent intent = new Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH);
         intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL, RecognizerIntent.LANGUAGE_MODEL_FREE_FORM);
         intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE, Locale.getDefault());
-        intent.putExtra(RecognizerIntent.EXTRA_PROMPT, "Say: Rename collection name to newCollectionName or delete the collection");
+        intent.putExtra(RecognizerIntent.EXTRA_PROMPT, "Say: Create collection collection name or delete collection collection name");
 
         speechLauncher.launch(intent);
     }
