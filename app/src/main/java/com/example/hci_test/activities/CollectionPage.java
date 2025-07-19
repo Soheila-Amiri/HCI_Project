@@ -51,6 +51,7 @@ public class CollectionPage extends AppCompatActivity implements CollectionAdapt
     private ImageView imageViewMicCo;
     private CheckBox checkBoxPosts;
     private TextView textViewNoR;
+    private CheckBox checkBoxCollections;
 
     private RecyclerView recyclerViewPosts;
     private PostAdaptor postAdaptor;
@@ -84,10 +85,28 @@ public class CollectionPage extends AppCompatActivity implements CollectionAdapt
         setSupportActionBar(toolbar);
         Objects.requireNonNull(getSupportActionBar()).setDisplayShowTitleEnabled(false);
 
+        checkBoxCollections = findViewById(R.id.checkBoxCollections);
         checkBoxPosts = findViewById(R.id.checkBoxPosts);
         imageViewMicCo = findViewById(R.id.imageViewMicCo);
         editTextSearchCo = findViewById(R.id.editTextSearchCo);
         textViewNoR = findViewById(R.id.textViewNoPosts);
+
+        /*checkBoxCollections.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (checkBoxPosts.isChecked()) {
+                    checkBoxPosts.setChecked(false);
+                }
+            }
+        });
+        checkBoxPosts.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (checkBoxCollections.isChecked()) {
+                    checkBoxCollections.setChecked(false);
+                }
+            }
+        });*/
 
         imageViewMicCo.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -122,7 +141,7 @@ public class CollectionPage extends AppCompatActivity implements CollectionAdapt
         recyclerViewPosts.setLayoutManager(new GridLayoutManager(this, 2));
 
         //adapter = new CollectionAdapter(CollectionManager.getAllCollections(), this);
-        adapter = new CollectionAdapter(CollectionManager.getAllCollections(), collection -> refreshAllPostsView());
+        adapter = new CollectionAdapter(CollectionManager.getAllCollections(), collection -> refreshAllCollectionsView());
         recyclerView.setAdapter(adapter);
 
         allCollections = CollectionManager.getAllCollections();
@@ -132,18 +151,40 @@ public class CollectionPage extends AppCompatActivity implements CollectionAdapt
         }
         allPosts = new ArrayList<>(uniquePostsSet);
 
-        checkBoxPosts.setOnCheckedChangeListener((buttonView, isChecked) -> {
+        checkBoxCollections.setOnCheckedChangeListener(((buttonView, isChecked) -> {
             if (isChecked){
+                searchedText = "";
+                checkBoxPosts.setChecked(false);
+                recyclerViewPosts.setVisibility(View.GONE);
+                recyclerView.setVisibility(View.VISIBLE);
+                refreshAllCollectionsView();
+                adapter.filterByCollectionName(editTextSearchCo.getText().toString());
+            } else {
+                searchedText = editTextSearchCo.getText().toString();
+                recyclerViewPosts.setVisibility(View.GONE);
+                recyclerView.setVisibility(View.VISIBLE);
+                refreshAllCollectionsView();
+                adapter.filter(editTextSearchCo.getText().toString());
+            }
+        }));
+
+        checkBoxPosts.setOnCheckedChangeListener((buttonView, isChecked) -> {
+            checkBoxCollections.setVisibility(View.VISIBLE);
+            if (isChecked){
+                checkBoxCollections.setChecked(false);
+                checkBoxCollections.setVisibility(View.GONE);
                 recyclerViewPosts.setVisibility(View.VISIBLE);
                 recyclerView.setVisibility(View.GONE);
 
+                refreshAllCollectionsView();
                 refreshAllPostsView();
 
                 postAdaptor = new PostAdaptor(allPosts, this, false, post -> refreshAllPostsView());
                 recyclerViewPosts.setAdapter(postAdaptor);
                 postAdaptor.filter(editTextSearchCo.getText().toString());
             }
-            else{
+            else if (!checkBoxCollections.isChecked()) {
+                searchedText = editTextSearchCo.getText().toString();
                 recyclerViewPosts.setVisibility(View.GONE);
                 recyclerView.setVisibility(View.VISIBLE);
                 refreshAllCollectionsView();
@@ -158,6 +199,9 @@ public class CollectionPage extends AppCompatActivity implements CollectionAdapt
             public void onTextChanged(CharSequence s, int start, int before, int count) {
                 if (checkBoxPosts.isChecked()) {
                     postAdaptor.filter(s.toString());
+                } else if (checkBoxCollections.isChecked()){
+                    searchedText = "";
+                    adapter.filterByCollectionName(s.toString());
                 } else {
                     searchedText = editTextSearchCo.getText().toString();
                     adapter.filter(s.toString());
@@ -281,7 +325,11 @@ public class CollectionPage extends AppCompatActivity implements CollectionAdapt
         allCollections.addAll(updatedCollections);
         if (adapter != null) {
             adapter.updateData(new ArrayList<>(allCollections));
-            adapter.filter(editTextSearchCo.getText().toString());
+            if (checkBoxCollections.isChecked()) {
+                adapter.filterByCollectionName(editTextSearchCo.getText().toString());
+            } else {
+                adapter.filter(editTextSearchCo.getText().toString());
+            }
         }
     }
 

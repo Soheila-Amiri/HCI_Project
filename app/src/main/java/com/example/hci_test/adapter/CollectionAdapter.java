@@ -117,4 +117,18 @@ public class CollectionAdapter extends RecyclerView.Adapter<CollectionAdapter.Vi
         }
         notifyDataSetChanged();
     }
+
+    public void filterByCollectionName(String name) {
+        collections.clear();
+        if (name.isEmpty()) {
+            collections.addAll(allCollections);
+        } else {
+            for (Collection collection : allCollections) {
+                if (collection.getName().contains(name)) {
+                    collections.add(collection);
+                }
+            }
+        }
+        notifyDataSetChanged();
+    }
 }
