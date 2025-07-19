@@ -40,6 +40,8 @@ public class CollectionAdapter extends RecyclerView.Adapter<CollectionAdapter.Vi
     public void updateData(List<Collection> newCollections) {
         this.collections.clear();
         this.collections.addAll(newCollections);
+        this.allCollections.clear();
+        this.allCollections.addAll(newCollections);
         notifyDataSetChanged();
     }
 

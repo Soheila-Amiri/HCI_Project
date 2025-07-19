@@ -35,6 +35,8 @@ import com.bumptech.glide.Glide;
 import com.bumptech.glide.request.target.CustomTarget;
 import com.bumptech.glide.request.transition.Transition;
 import com.example.hci_test.BuildConfig;
+import com.example.hci_test.adapter.CollectionChoiceAdapter;
+import com.example.hci_test.model.Collection;
 import com.example.hci_test.model.CollectionManager;
 import com.example.hci_test.model.Post;
 import com.example.hci_test.PostAdaptor;
@@ -53,7 +55,9 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 import java.util.Random;
+import java.util.Set;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 import okhttp3.Call;
 import okhttp3.Callback;
@@ -72,6 +76,10 @@ public class MainActivity extends AppCompatActivity {
     LinearLayoutManager layoutManager;
     ProgressBar progressBar;
     EditText editTextSearch;
+    private ActivityResultLauncher<Intent> speechLauncher;
+    private Post currentPostForVoice;
+    private PostAdaptor.OnPostDeletedListener onPostDeletedListener;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -121,6 +129,18 @@ public class MainActivity extends AppCompatActivity {
                 performSearch();
             }
         });
+
+        speechLauncher = registerForActivityResult(
+                new ActivityResultContracts.StartActivityForResult(),
+                result -> {
+                    if (result.getResultCode() == RESULT_OK && result.getData() != null) {
+                        ArrayList<String> spokenText = result.getData().getStringArrayListExtra(RecognizerIntent.EXTRA_RESULTS);
+                        if (spokenText != null && !spokenText.isEmpty()) {
+                            handleVoiceCommand(spokenText.get(0), currentPostForVoice);
+                        }
+                    }
+                }
+        );
 
     }
     public void makeCall(String textSearch){
@@ -196,7 +216,7 @@ public class MainActivity extends AppCompatActivity {
         // Hide the keyboard
         InputMethodManager imm = (InputMethodManager) getSystemService(Activity.INPUT_METHOD_SERVICE);
         View view = this.getCurrentFocus();
-        if (view == null) view = new View(this); // fallback if no focus
+        if (view == null) view = new View(this);
         imm.hideSoftInputFromWindow(view.getWindowToken(), 0);
 
         postList.clear();
@@ -208,8 +228,6 @@ public class MainActivity extends AppCompatActivity {
         progressBar.setVisibility(View.VISIBLE);
         makeCall(textSearch);
     }
-
-
 
    /* public void openNewCollectionDialog() {
         View dialogView = getLayoutInflater().inflate(R.layout.dialog_add_collection, null);
@@ -360,6 +378,59 @@ public class MainActivity extends AppCompatActivity {
                     @Override
                     public void onLoadCleared(@Nullable Drawable placeholder) {}
                 });
+    }
+
+    public void startVoiceInputForPost(Post post) {
+        currentPostForVoice = post;
+
+        Intent intent = new Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH);
+        intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL, RecognizerIntent.LANGUAGE_MODEL_FREE_FORM);
+        intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE, Locale.getDefault());
+        intent.putExtra(RecognizerIntent.EXTRA_PROMPT, "Say: add to collection collectionName or remove from collection collectionName");
+
+        speechLauncher.launch(intent);
+    }
+
+    private void handleVoiceCommand(String command, Post post) {
+        if (command.toLowerCase().startsWith("add to collection")) {
+            String collectionName = command.toLowerCase().replace("add to collection", "").trim();
+
+            List<Collection> allCollections = CollectionManager.getAllCollections();
+            List<String> allCollectionNames = CollectionManager.getAllCollectionNames();
+            CollectionChoiceAdapter adapter = new CollectionChoiceAdapter(this, allCollections, post);
+            Set<String> selectedNames = adapter.getSelectedNames();
+
+            if (selectedNames.stream().map(String::toLowerCase).collect(Collectors.toSet()).contains(collectionName)) {
+                Toast.makeText(this, "Post is already in the collection", Toast.LENGTH_SHORT).show();
+            } else if (allCollectionNames.stream().map(String::toLowerCase).collect(Collectors.toList()).contains(collectionName)) {
+                Collection collection = CollectionManager.getCollectionByName(collectionName);//Should be case insensitive
+                collection.addPost(post);
+                Toast.makeText(this, "Post saved successfully!", Toast.LENGTH_SHORT).show();
+            } else {
+                CollectionManager.createCollection(collectionName);
+                Collection collection = CollectionManager.getCollectionByName(collectionName);
+                collection.addPost(post);
+                Toast.makeText(this, "Post saved successfully!", Toast.LENGTH_SHORT).show();
+            }
+
+        } else if (command.toLowerCase().startsWith("remove from collection")) {
+            String collectionName = command.toLowerCase().replace("remove from collection", "").trim();
+
+            List<Collection> allCollections = CollectionManager.getAllCollections();
+            CollectionChoiceAdapter adapter = new CollectionChoiceAdapter(this, allCollections, post);
+            Set<String> selectedNames = adapter.getSelectedNames();
+
+            if (selectedNames.stream().map(String::toLowerCase).collect(Collectors.toSet()).contains(collectionName)) {
+                Collection collection = CollectionManager.getCollectionByName(collectionName);
+                collection.removePost(post);
+                Toast.makeText(this, "Post removed successfully!", Toast.LENGTH_SHORT).show();
+            } else {
+                Toast.makeText(this, "Post is not in the collection", Toast.LENGTH_SHORT).show();
+            }
+
+        } else {
+            Toast.makeText(this, "Unrecognized voice command", Toast.LENGTH_SHORT).show();
+        }
     }
 
 }

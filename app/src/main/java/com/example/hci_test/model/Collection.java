@@ -47,4 +47,8 @@ public class Collection {
     public void setName(String name) {
         this.name = name;
     }
+
+    public void removePost(Post post){
+        posts.remove(post);
+    }
 }

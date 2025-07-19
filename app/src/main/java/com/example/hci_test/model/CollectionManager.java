@@ -7,6 +7,7 @@ import com.example.hci_test.JsonFileHelper;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Locale;
 
 public class CollectionManager {
 
@@ -26,6 +27,7 @@ public class CollectionManager {
         isInitialized = true;
     }
     public static boolean createCollection(String name) {
+        name = name.toLowerCase(); //to easily apply the voice command
         if (collections.containsKey(name)) return false;
         collections.put(name, new Collection(name));
         saveCollectionsToJson();

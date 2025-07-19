@@ -54,13 +54,30 @@ public class CollectionPage extends AppCompatActivity implements CollectionAdapt
 
     private RecyclerView recyclerViewPosts;
     private PostAdaptor postAdaptor;
-    List<Post> allPosts;
+    private List<Post> allPosts;
+    private List<Collection> allCollections;
+
+    private ActivityResultLauncher<Intent> speechLauncher;
+
+    private TextView textViewCollection;
 
     @SuppressLint("MissingInflatedId")
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.list_collection);
+
+        speechLauncher = registerForActivityResult(
+                new ActivityResultContracts.StartActivityForResult(),
+                result -> {
+                    if (result.getResultCode() == RESULT_OK && result.getData() != null) {
+                        ArrayList<String> spokenText = result.getData().getStringArrayListExtra(RecognizerIntent.EXTRA_RESULTS);
+                        if (spokenText != null && !spokenText.isEmpty()) {
+                            handleVoiceCommand(spokenText.get(0));
+                        }
+                    }
+                }
+        );
 
         Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
@@ -83,6 +100,14 @@ public class CollectionPage extends AppCompatActivity implements CollectionAdapt
             }
         });
 
+        textViewCollection = findViewById(R.id.textViewCollection);
+        textViewCollection.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                startVoiceInputForNewCollection();
+            }
+        });
+
         findViewById(R.id.imageViewBack).setOnClickListener(v -> finish());
 
         findViewById(R.id.imageViewAddCollection).setOnClickListener(v -> showAddCollectionDialog());
@@ -95,10 +120,11 @@ public class CollectionPage extends AppCompatActivity implements CollectionAdapt
         recyclerViewPosts = findViewById(R.id.recyclerViewPosts);
         recyclerViewPosts.setLayoutManager(new GridLayoutManager(this, 2));
 
-        adapter = new CollectionAdapter(CollectionManager.getAllCollections(), this);
+        //adapter = new CollectionAdapter(CollectionManager.getAllCollections(), this);
+        adapter = new CollectionAdapter(CollectionManager.getAllCollections(), collection -> refreshAllPostsView());
         recyclerView.setAdapter(adapter);
 
-        List<Collection> allCollections = CollectionManager.getAllCollections();
+        allCollections = CollectionManager.getAllCollections();
         Set<Post> uniquePostsSet = new HashSet<>();
         for (Collection collection : allCollections) {
             uniquePostsSet.addAll(collection.getPosts());
@@ -119,6 +145,7 @@ public class CollectionPage extends AppCompatActivity implements CollectionAdapt
             else{
                 recyclerViewPosts.setVisibility(View.GONE);
                 recyclerView.setVisibility(View.VISIBLE);
+                refreshAllCollectionsView();
                 adapter.filter(editTextSearchCo.getText().toString());
             }
         });
@@ -190,7 +217,8 @@ public class CollectionPage extends AppCompatActivity implements CollectionAdapt
     @Override
     protected void onResume() {
         super.onResume();
-        adapter.updateData(CollectionManager.getAllCollections());
+        //adapter.updateData(CollectionManager.getAllCollections());
+        refreshAllCollectionsView();
         updateNoCollectionsMessage();
 
         if (checkBoxPosts.isChecked()) {
@@ -242,6 +270,49 @@ public class CollectionPage extends AppCompatActivity implements CollectionAdapt
         if (postAdaptor != null) {
             postAdaptor.updateData(allPosts);
             postAdaptor.filter(editTextSearchCo.getText().toString());
+        }
+    }
+    public void refreshAllCollectionsView() {
+        List<Collection> updatedCollections = CollectionManager.getAllCollections();
+
+        allCollections.clear();
+        allCollections.addAll(updatedCollections);
+        if (adapter != null) {
+            adapter.updateData(new ArrayList<>(allCollections));
+            adapter.filter(editTextSearchCo.getText().toString());
+        }
+    }
+
+    public void startVoiceInputForNewCollection() {
+
+        Intent intent = new Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH);
+        intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL, RecognizerIntent.LANGUAGE_MODEL_FREE_FORM);
+        intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE, Locale.getDefault());
+        intent.putExtra(RecognizerIntent.EXTRA_PROMPT, "Say: Rename collection name to newCollectionName or delete the collection");
+
+        speechLauncher.launch(intent);
+    }
+
+    private void handleVoiceCommand(String command) {
+        if (command.toLowerCase().startsWith("create collection")) {
+            String collectionName = command.toLowerCase().replace("create collection", "").trim();
+            List<String> allCollectionNames = CollectionManager.getAllCollectionNames();
+
+            if (collectionName.isEmpty()) {
+                Toast.makeText(this, "Please specify the collection name", Toast.LENGTH_SHORT).show();
+            } else {
+                if (allCollectionNames.contains(collectionName)) {
+                    Toast.makeText(this, "This name is already in use of another collection. Try again!", Toast.LENGTH_SHORT).show();
+                } else {
+                    CollectionManager.createCollection(collectionName);
+                }
+            }
+        } else if (command.toLowerCase().startsWith("delete collection")) {
+            String collectionName = command.toLowerCase().replace("delete collection", "").trim();
+            CollectionManager.removeCollection(collectionName);
+            Toast.makeText(this, "Collection deleted successfully!", Toast.LENGTH_SHORT).show();
+        } else {
+            Toast.makeText(this, "Unrecognized voice command", Toast.LENGTH_SHORT).show();
         }
     }
 }
