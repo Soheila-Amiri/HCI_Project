@@ -91,23 +91,6 @@ public class CollectionPage extends AppCompatActivity implements CollectionAdapt
         editTextSearchCo = findViewById(R.id.editTextSearchCo);
         textViewNoR = findViewById(R.id.textViewNoPosts);
 
-        /*checkBoxCollections.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                if (checkBoxPosts.isChecked()) {
-                    checkBoxPosts.setChecked(false);
-                }
-            }
-        });
-        checkBoxPosts.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                if (checkBoxCollections.isChecked()) {
-                    checkBoxCollections.setChecked(false);
-                }
-            }
-        });*/
-
         imageViewMicCo.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -140,7 +123,6 @@ public class CollectionPage extends AppCompatActivity implements CollectionAdapt
         recyclerViewPosts = findViewById(R.id.recyclerViewPosts);
         recyclerViewPosts.setLayoutManager(new GridLayoutManager(this, 2));
 
-        //adapter = new CollectionAdapter(CollectionManager.getAllCollections(), this);
         adapter = new CollectionAdapter(CollectionManager.getAllCollections(), collection -> refreshAllCollectionsView());
         recyclerView.setAdapter(adapter);
 
@@ -263,7 +245,6 @@ public class CollectionPage extends AppCompatActivity implements CollectionAdapt
     @Override
     protected void onResume() {
         super.onResume();
-        //adapter.updateData(CollectionManager.getAllCollections());
         refreshAllCollectionsView();
         updateNoCollectionsMessage();
 
@@ -344,23 +325,30 @@ public class CollectionPage extends AppCompatActivity implements CollectionAdapt
     }
 
     private void handleVoiceCommand(String command) {
+        List<String> allCollectionNames = CollectionManager.getAllCollectionNames();
+
         if (command.toLowerCase().startsWith("create collection")) {
             String collectionName = command.toLowerCase().replace("create collection", "").trim();
-            List<String> allCollectionNames = CollectionManager.getAllCollectionNames();
 
             if (collectionName.isEmpty()) {
                 Toast.makeText(this, "Please specify the collection name", Toast.LENGTH_SHORT).show();
             } else {
                 if (allCollectionNames.contains(collectionName)) {
-                    Toast.makeText(this, "This name is already in use of another collection. Try again!", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(this, "This name is already used. Try again!", Toast.LENGTH_SHORT).show();
                 } else {
                     CollectionManager.createCollection(collectionName);
                 }
             }
         } else if (command.toLowerCase().startsWith("delete collection")) {
             String collectionName = command.toLowerCase().replace("delete collection", "").trim();
-            CollectionManager.removeCollection(collectionName);
-            Toast.makeText(this, "Collection deleted successfully!", Toast.LENGTH_SHORT).show();
+            if (collectionName.isEmpty()) {
+                Toast.makeText(this, "Please specify the collection name", Toast.LENGTH_SHORT).show();
+            } else if (allCollectionNames.contains(collectionName)) {
+                CollectionManager.removeCollection(collectionName);
+                Toast.makeText(this, "Collection deleted successfully!", Toast.LENGTH_SHORT).show();
+            } else {
+                Toast.makeText(this, "Collection was not found", Toast.LENGTH_SHORT).show();
+            }
         } else {
             Toast.makeText(this, "Unrecognized voice command", Toast.LENGTH_SHORT).show();
         }
