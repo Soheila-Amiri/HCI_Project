@@ -392,17 +392,19 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void handleVoiceCommand(String command, Post post) {
+
+        List<Collection> allCollections = CollectionManager.getAllCollections();
+        List<String> allCollectionNames = CollectionManager.getAllCollectionNames();
+        CollectionChoiceAdapter adapter = new CollectionChoiceAdapter(this, allCollections, post);
+        Set<String> selectedNames = adapter.getSelectedNames();
+
         if (command.toLowerCase().startsWith("add to collection")) {
             String collectionName = command.toLowerCase().replace("add to collection", "").trim();
-
-            List<Collection> allCollections = CollectionManager.getAllCollections();
-            List<String> allCollectionNames = CollectionManager.getAllCollectionNames();
-            CollectionChoiceAdapter adapter = new CollectionChoiceAdapter(this, allCollections, post);
-            Set<String> selectedNames = adapter.getSelectedNames();
-
-            if (selectedNames.stream().map(String::toLowerCase).collect(Collectors.toSet()).contains(collectionName)) {
+            if (collectionName.isEmpty()) {
+                Toast.makeText(this, "Please specify the collection name", Toast.LENGTH_SHORT).show();
+            } else if (selectedNames.contains(collectionName)) {
                 Toast.makeText(this, "Post is already in the collection", Toast.LENGTH_SHORT).show();
-            } else if (allCollectionNames.stream().map(String::toLowerCase).collect(Collectors.toList()).contains(collectionName)) {
+            } else if (allCollectionNames.contains(collectionName)) {
                 Collection collection = CollectionManager.getCollectionByName(collectionName);//Should be case insensitive
                 collection.addPost(post);
                 Toast.makeText(this, "Post saved successfully!", Toast.LENGTH_SHORT).show();
@@ -416,21 +418,20 @@ public class MainActivity extends AppCompatActivity {
         } else if (command.toLowerCase().startsWith("remove from collection")) {
             String collectionName = command.toLowerCase().replace("remove from collection", "").trim();
 
-            List<Collection> allCollections = CollectionManager.getAllCollections();
-            CollectionChoiceAdapter adapter = new CollectionChoiceAdapter(this, allCollections, post);
-            Set<String> selectedNames = adapter.getSelectedNames();
-
-            if (selectedNames.stream().map(String::toLowerCase).collect(Collectors.toSet()).contains(collectionName)) {
+            if (collectionName.isEmpty()) {
+                Toast.makeText(this, "Please specify the collection name", Toast.LENGTH_SHORT).show();
+            } else if (selectedNames.contains(collectionName)) {
                 Collection collection = CollectionManager.getCollectionByName(collectionName);
                 collection.removePost(post);
                 Toast.makeText(this, "Post removed successfully!", Toast.LENGTH_SHORT).show();
-            } else {
+            } else if (allCollectionNames.contains(collectionName)) {
                 Toast.makeText(this, "Post is not in the collection", Toast.LENGTH_SHORT).show();
+            } else {
+                Toast.makeText(this, "Collection was not found", Toast.LENGTH_SHORT).show();
             }
 
         } else {
             Toast.makeText(this, "Unrecognized voice command", Toast.LENGTH_SHORT).show();
         }
     }
-
 }
