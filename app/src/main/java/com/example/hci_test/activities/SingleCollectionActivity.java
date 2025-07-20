@@ -252,21 +252,23 @@ public class SingleCollectionActivity extends AppCompatActivity {
         Intent intent = new Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH);
         intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL, RecognizerIntent.LANGUAGE_MODEL_FREE_FORM);
         intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE, Locale.getDefault());
-        intent.putExtra(RecognizerIntent.EXTRA_PROMPT, "Say: Rename collection name to newCollectionName or delete the collection");
+        intent.putExtra(RecognizerIntent.EXTRA_PROMPT, "Say: Rename collection to newCollectionName or delete the collection");
 
         speechLauncher.launch(intent);
     }
 
     private void handleVoiceCommand(String command, Collection collection) {
-        if (command.toLowerCase().startsWith("rename collection name to")) {
-            String collectionName = command.toLowerCase().replace("rename collection name to", "").trim();
-            List<String> allCollectionNames = CollectionManager.getAllCollectionNames();
-            String currentCollectionName = collection.getName();
+        List<String> allCollectionNames = CollectionManager.getAllCollectionNames();
+        String currentCollectionName = collection.getName();
+
+        if (command.toLowerCase().startsWith("rename collection to")) {
+            String collectionName = command.toLowerCase().replace("rename collection to", "").trim();
+
             if (collectionName.isEmpty()) {
-                Toast.makeText(this, "Please enter the new Collection Name", Toast.LENGTH_SHORT).show();
+                Toast.makeText(this, "Please specify the new Collection Name", Toast.LENGTH_SHORT).show();
             } else {
                 if (!collectionName.equals(currentCollectionName) && allCollectionNames.contains(collectionName)) {
-                    Toast.makeText(this, "This name is already in use of another collection. Try again!", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(this, "This name is already used. Try again!", Toast.LENGTH_SHORT).show();
                 } else {
                     CollectionManager.renameCollection(currentCollectionName, collectionName);
                     textViewTitle.setText(collectionName);
@@ -276,7 +278,7 @@ public class SingleCollectionActivity extends AppCompatActivity {
         } else if (command.toLowerCase().startsWith("delete collection") || command.toLowerCase().startsWith("delete the collection")) {
 
             CollectionManager.removeCollection(collection.getName());
-            Toast.makeText(this, "Collection deleted", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, "Collection deleted successfully!", Toast.LENGTH_SHORT).show();
             finish();
 
         } else {
