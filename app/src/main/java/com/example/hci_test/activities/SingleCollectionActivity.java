@@ -101,7 +101,7 @@ public class SingleCollectionActivity extends AppCompatActivity {
         textViewNoResults = findViewById(R.id.textViewNoResults);
 
         RecyclerView recyclerView = findViewById(R.id.recyclerViewCollection);
-        recyclerView.setLayoutManager(new GridLayoutManager(this, 2));
+        recyclerView.setLayoutManager(new GridLayoutManager(this, 1));
 
         reversedPosts = new ArrayList<>(collection.getPosts());
         Collections.reverse(reversedPosts);
