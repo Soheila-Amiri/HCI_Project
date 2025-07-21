@@ -1,13 +1,17 @@
 package com.example.hci_test;
 
 import static androidx.activity.result.ActivityResultCallerKt.registerForActivityResult;
+import static androidx.core.app.ActivityCompat.finishAffinity;
 import static androidx.core.app.ActivityCompat.startActivityForResult;
+import static androidx.core.content.ContextCompat.getSystemService;
 
 import android.app.Activity;
 import android.content.ActivityNotFoundException;
 import android.content.Context;
 import android.content.Intent;
 import android.speech.RecognizerIntent;
+import android.text.Editable;
+import android.text.TextWatcher;
 import android.view.GestureDetector;
 import android.view.LayoutInflater;
 import android.view.MotionEvent;
@@ -18,6 +22,7 @@ import android.widget.ArrayAdapter;
 import android.widget.CheckBox;
 import android.widget.EditText;
 import android.widget.FrameLayout;
+import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.Spinner;
 import android.widget.TextView;
@@ -34,6 +39,7 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.bumptech.glide.Glide;
 import com.example.hci_test.activities.MainActivity;
+import com.example.hci_test.activities.SingleCollectionActivity;
 import com.example.hci_test.adapter.CollectionChoiceAdapter;
 import com.example.hci_test.model.Collection;
 import com.example.hci_test.model.CollectionManager;
@@ -41,6 +47,7 @@ import com.example.hci_test.model.Post;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 import java.util.Random;
 import java.util.Set;
 
@@ -49,6 +56,11 @@ public class PostAdaptor extends RecyclerView.Adapter<PostViewHolder> {
     Context context;
     private boolean collectionMode;
 
+    private CollectionChoiceAdapter adapter;
+    private EditText editTextSearch;
+
+    List<Collection> searchedCollections;
+    List<Collection> allCollections;
     List<Post> allPostList;
 
     private final OnPostDeletedListener onPostDeletedListener;
@@ -135,9 +147,27 @@ public class PostAdaptor extends RecyclerView.Adapter<PostViewHolder> {
         ListView listView = dialogView.findViewById(R.id.listViewCollections);
         TextView newCollectionBtn = dialogView.findViewById(R.id.textViewNewCollection);
 
-        List<Collection> allCollections = CollectionManager.getAllCollections();
-        CollectionChoiceAdapter adapter = new CollectionChoiceAdapter(context, allCollections, post);
+        //List<Collection> allCollections = CollectionManager.getAllCollections();
+        searchedCollections = CollectionManager.getAllCollections();
+        allCollections = CollectionManager.getAllCollections();
+        adapter = new CollectionChoiceAdapter(context, allCollections, post);
         listView.setAdapter(adapter);
+
+        editTextSearch = dialogView.findViewById(R.id.editTextSearchChoice);
+        editTextSearch.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
+
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) {
+                filterByCollectionName(editTextSearch.getText().toString());
+                adapter = new CollectionChoiceAdapter(context, searchedCollections, post);
+                listView.setAdapter(adapter);
+            }
+
+            @Override
+            public void afterTextChanged(Editable s) {}
+        });
 
         AlertDialog dialog = new AlertDialog.Builder(context)
                 .setView(dialogView)
@@ -218,6 +248,20 @@ public class PostAdaptor extends RecyclerView.Adapter<PostViewHolder> {
     public void updateData(List<Post> newPosts) {
         this.postList = new ArrayList<>(newPosts);
         this.allPostList = new ArrayList<>(newPosts);
+        notifyDataSetChanged();
+    }
+
+    public void filterByCollectionName(String name) {
+        searchedCollections.clear();
+        if (name.isEmpty()) {
+            searchedCollections.addAll(allCollections);
+        } else {
+            for (Collection collection : allCollections) {
+                if (collection.getName().contains(name)) {
+                    searchedCollections.add(collection);
+                }
+            }
+        }
         notifyDataSetChanged();
     }
 }

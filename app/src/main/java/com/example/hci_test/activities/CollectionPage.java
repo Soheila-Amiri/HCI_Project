@@ -89,6 +89,7 @@ public class CollectionPage extends AppCompatActivity implements CollectionAdapt
         checkBoxPosts = findViewById(R.id.checkBoxPosts);
         imageViewMicCo = findViewById(R.id.imageViewMicCo);
         editTextSearchCo = findViewById(R.id.editTextSearchCo);
+        searchedText = editTextSearchCo.getText().toString();
         textViewNoR = findViewById(R.id.textViewNoPosts);
 
         imageViewMicCo.setOnClickListener(new View.OnClickListener() {
