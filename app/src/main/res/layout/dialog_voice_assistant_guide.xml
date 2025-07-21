@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:padding="24dp"
+    android:background="@drawable/bg_edittext_rounded">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical">
+
+        <TextView
+            android:id="@+id/guideTitle"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center"
+            android:paddingBottom="12dp"
+            android:text="Welcome to Collecto!"
+            android:textSize="20sp"
+            android:textStyle="bold" />
+
+        <TextView
+            android:id="@+id/guideText"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Welecome to Collecto!\nHere are some tips to make using the app easier :)\n\n
+. You can activate the Post Voice assistant by double clicking on the post in the main page.\n
+-> You can remove a post from a collection by saying: remove from cpllection CollectionName\n
+-> You can add a post to a collection by saying: Add to collection CollectionName\n\n
+. You can activate the voice assistance for Collection operations too!\n
+-> In the Collection Page by clicking on the 'Collections' in te toolbar.\n
+You can create a new collection by saying: Create collection CollectionName\n
+You can delete a collection by saying: Delete collection CollectionName\n\n
+-> In the Single Collection Page by clicking on the collection name in the toolbar.\n
+You can rename the collection by saying: rename collection to newCollectionName\n
+You can delete the collection by saying: Delete (the) coleection\n\n
+Yeah that is easy right!\n
+But don't worry, you can do all the mentioned operations manually too!"
+            android:textColor="#000000"
+            android:textSize="16sp" />
+
+        <Button
+            android:id="@+id/closeButton"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:text="Got it!" />
+    </LinearLayout>
+</ScrollView>

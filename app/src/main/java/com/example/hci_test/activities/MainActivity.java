@@ -9,9 +9,11 @@ import android.os.Build;
 import android.os.Bundle;
 import android.speech.RecognizerIntent;
 import android.util.Log;
+import android.view.LayoutInflater;
 import android.view.View;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.AdapterView;
+import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.ProgressBar;
@@ -89,6 +91,23 @@ public class MainActivity extends AppCompatActivity {
 
         EdgeToEdge.enable(this);
         setContentView(R.layout.activity_main);
+
+        LayoutInflater layoutInflater = getLayoutInflater();
+        View dialogViewGuide = layoutInflater.inflate(R.layout.dialog_voice_assistant_guide, null);
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setView(dialogViewGuide);
+        AlertDialog dialogGuide = builder.create();
+        Button closeGuide = dialogViewGuide.findViewById(R.id.closeButton);
+
+        ImageView imageViewGuide = findViewById(R.id.imageViewGuide);
+        imageViewGuide.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                dialogGuide.show();
+            }
+        });
+        closeGuide.setOnClickListener(v -> dialogGuide.dismiss());
+
 
         recyclerView = findViewById(R.id.recyclerView);
         layoutManager = new LinearLayoutManager(this);

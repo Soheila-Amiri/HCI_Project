@@ -39,6 +39,7 @@
                 android:clickable="true"
                 android:focusable="true"
                 android:text="Collection"
+                android:textColor="#FFFFFF"
                 android:textSize="18sp"
                 android:textStyle="bold" />
 
