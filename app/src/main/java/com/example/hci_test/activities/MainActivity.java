@@ -8,6 +8,8 @@ import android.graphics.Bitmap;
 import android.graphics.drawable.Drawable;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Looper;
 import android.speech.RecognizerIntent;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -89,6 +91,8 @@ public class MainActivity extends AppCompatActivity {
 
     private ActivityResultLauncher<Intent> voiceLauncher;
     private Consumer<String> onVoiceResultCallback;
+
+    private boolean responseReceived = false;
 
 
     @Override
@@ -187,10 +191,22 @@ public class MainActivity extends AppCompatActivity {
                 .url("https://api.pexels.com/v1/search?query="+textSearch+"&per_page=80&page=1") // loop to have all pages' results
                 .addHeader("Authorization", "tNEayw052ElHvI5oL0RHHFvVqrBYAPO64QkP8tSsjRR6IxuL8VLg3Qaf")
                 .build();
+
+        new Handler(Looper.getMainLooper()).postDelayed(() -> {
+            if (!responseReceived) {
+                Toast.makeText(MainActivity.this, "Please check your internet connection.", Toast.LENGTH_LONG).show();
+                progressBar.setVisibility(View.INVISIBLE);
+            }
+        }, 10000);
+
         okHttpClient.newCall(request).enqueue(new Callback() {
             @Override
             public void onFailure(@NonNull Call call, @NonNull IOException e) {
-
+                responseReceived = true;
+                runOnUiThread(() -> {
+                    progressBar.setVisibility(View.INVISIBLE);
+                    Toast.makeText(MainActivity.this, "Failed to connect. Check your internet.", Toast.LENGTH_SHORT).show();
+                });
             }
 
             @Override
