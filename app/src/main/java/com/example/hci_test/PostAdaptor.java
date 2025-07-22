@@ -148,7 +148,6 @@ public class PostAdaptor extends RecyclerView.Adapter<PostViewHolder> {
         ListView listView = dialogView.findViewById(R.id.listViewCollections);
         TextView newCollectionBtn = dialogView.findViewById(R.id.textViewNewCollection);
 
-        //List<Collection> allCollections = CollectionManager.getAllCollections();
         searchedCollections = CollectionManager.getAllCollections();
         allCollections = CollectionManager.getAllCollections();
         adapter = new CollectionChoiceAdapter(context, allCollections, post);

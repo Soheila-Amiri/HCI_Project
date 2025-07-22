@@ -13,6 +13,7 @@ import android.widget.TextView;
 import com.bumptech.glide.Glide;
 import com.example.hci_test.R;
 import com.example.hci_test.model.Collection;
+import com.example.hci_test.model.CollectionManager;
 import com.example.hci_test.model.Post;
 
 import java.util.HashSet;
@@ -23,12 +24,13 @@ public class CollectionChoiceAdapter extends BaseAdapter {
     private final Context context;
     private final List<Collection> collections;
     private final Set<String> selectedNames = new HashSet<>();
+    private final List<Collection> allCollections = CollectionManager.getAllCollections();
 
     public CollectionChoiceAdapter(Context context, List<Collection> collections, Post post) {
         this.context = context;
         this.collections = collections;
 
-        for (Collection collection : collections) {
+        for (Collection collection : allCollections) {
             if (collection.getPosts().contains(post)) {
                 selectedNames.add(collection.getName());
             }
