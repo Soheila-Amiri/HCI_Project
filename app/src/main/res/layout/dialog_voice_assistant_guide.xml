@@ -25,7 +25,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text="Welecome to Collecto!\nHere are some tips to make using the app easier :)\n\n
-. You can activate the Post Voice assistant by double clicking on the post in the main page.\n
+. You can activate the Post Voice assistant by double clicking on the post in the main page and collection page.\n
 -> You can remove a post from a collection by saying: remove from collection CollectionName\n
 -> You can add a post to a collection by saying: Add to collection CollectionName\n\n
 . You can activate the voice assistance for Collection operations too!\n

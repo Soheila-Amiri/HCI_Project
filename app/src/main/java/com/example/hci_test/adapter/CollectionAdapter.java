@@ -102,13 +102,14 @@ public class CollectionAdapter extends RecyclerView.Adapter<CollectionAdapter.Vi
     }
 
     public void filter(String query){
+        query = query.toLowerCase();
         collections.clear();
         if (query.isEmpty()){
             collections.addAll(allCollections);
         } else {
             for (Collection collection : allCollections) {
                 for (Post post : collection.getPosts()) {
-                    if (post.getDescription().toLowerCase().contains(query.toLowerCase())) {
+                    if (post.getDescription().toLowerCase().contains(query)) {
                         collections.add(collection);
                         break;
                     }
@@ -119,6 +120,7 @@ public class CollectionAdapter extends RecyclerView.Adapter<CollectionAdapter.Vi
     }
 
     public void filterByCollectionName(String name) {
+        name = name.toLowerCase();
         collections.clear();
         if (name.isEmpty()) {
             collections.addAll(allCollections);

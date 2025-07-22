@@ -272,6 +272,7 @@ public class SingleCollectionActivity extends AppCompatActivity {
                 } else {
                     CollectionManager.renameCollection(currentCollectionName, collectionName);
                     textViewTitle.setText(collectionName);
+                    Toast.makeText(this, "Collection name changed successfully!", Toast.LENGTH_SHORT).show();
                 }
             }
 

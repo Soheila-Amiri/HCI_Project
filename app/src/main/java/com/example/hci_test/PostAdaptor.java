@@ -134,6 +134,8 @@ public class PostAdaptor extends RecyclerView.Adapter<PostViewHolder> {
             public boolean onDoubleTap(MotionEvent e) {
                 if (context instanceof MainActivity) {
                     ((MainActivity) context).startVoiceInputForPost(post);
+                } else if (context instanceof CollectionPage) {
+                    ((CollectionPage) context).startVoiceInputForPost(post);
                 }
                 return true;
             }
@@ -174,7 +176,7 @@ public class PostAdaptor extends RecyclerView.Adapter<PostViewHolder> {
 
             @Override
             public void onTextChanged(CharSequence s, int start, int before, int count) {
-                filterByCollectionName(editTextSearch.getText().toString());
+                filterByCollectionName(editTextSearch.getText().toString().toLowerCase());
                 adapter = new CollectionChoiceAdapter(context, searchedCollections, post);
                 listView.setAdapter(adapter);
             }
@@ -185,7 +187,7 @@ public class PostAdaptor extends RecyclerView.Adapter<PostViewHolder> {
 
         AlertDialog dialog = new AlertDialog.Builder(context)
                 .setView(dialogView)
-                .setPositiveButton("Save", null) // We'll override this after .show()
+                .setPositiveButton("Save", null)
                 .setNegativeButton("Cancel", null)
                 .create();
 
@@ -266,6 +268,7 @@ public class PostAdaptor extends RecyclerView.Adapter<PostViewHolder> {
     }
 
     public void filterByCollectionName(String name) {
+        name = name.toLowerCase();
         searchedCollections.clear();
         if (name.isEmpty()) {
             searchedCollections.addAll(allCollections);
