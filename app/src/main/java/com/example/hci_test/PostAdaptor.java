@@ -38,6 +38,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.bumptech.glide.Glide;
+import com.example.hci_test.activities.CollectionPage;
 import com.example.hci_test.activities.MainActivity;
 import com.example.hci_test.activities.SingleCollectionActivity;
 import com.example.hci_test.adapter.CollectionChoiceAdapter;
@@ -154,6 +155,20 @@ public class PostAdaptor extends RecyclerView.Adapter<PostViewHolder> {
         listView.setAdapter(adapter);
 
         editTextSearch = dialogView.findViewById(R.id.editTextSearchChoice);
+        ImageView imageViewMicChoice = dialogView.findViewById(R.id.imageViewMicCh);
+        imageViewMicChoice.setOnClickListener(v -> {
+            if (context instanceof MainActivity) {
+                ((MainActivity) context).startVoiceInputForSearch(result -> {
+                    editTextSearch.setText(result);
+                });
+            } else if (context instanceof CollectionPage) {
+                ((CollectionPage) context).startVoiceInputForSearch(result -> {
+                    editTextSearch.setText(result);
+                });
+            }
+        });
+
+
         editTextSearch.addTextChangedListener(new TextWatcher() {
             @Override
             public void beforeTextChanged(CharSequence s, int start, int count, int after) {}

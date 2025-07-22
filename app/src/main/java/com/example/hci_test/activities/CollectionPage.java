@@ -2,6 +2,7 @@ package com.example.hci_test.activities;
 
 import android.annotation.SuppressLint;
 import android.app.Activity;
+import android.content.ActivityNotFoundException;
 import android.content.Intent;
 import android.os.Bundle;
 import android.speech.RecognizerIntent;
@@ -40,6 +41,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Objects;
 import java.util.Set;
+import java.util.function.Consumer;
 
 public class CollectionPage extends AppCompatActivity implements CollectionAdapter.OnCollectionClickListener {
 
@@ -60,8 +62,11 @@ public class CollectionPage extends AppCompatActivity implements CollectionAdapt
     public static String searchedText;
 
     private ActivityResultLauncher<Intent> speechLauncher;
-
     private TextView textViewCollection;
+
+    private ActivityResultLauncher<Intent> voiceLauncher;
+    private Consumer<String> onVoiceResultCallback;
+
 
     @SuppressLint("MissingInflatedId")
     @Override
@@ -76,6 +81,18 @@ public class CollectionPage extends AppCompatActivity implements CollectionAdapt
                         ArrayList<String> spokenText = result.getData().getStringArrayListExtra(RecognizerIntent.EXTRA_RESULTS);
                         if (spokenText != null && !spokenText.isEmpty()) {
                             handleVoiceCommand(spokenText.get(0));
+                        }
+                    }
+                }
+        );
+
+        voiceLauncher = registerForActivityResult(
+                new ActivityResultContracts.StartActivityForResult(),
+                result -> {
+                    if (result.getResultCode() == RESULT_OK && result.getData() != null) {
+                        ArrayList<String> matches = result.getData().getStringArrayListExtra(RecognizerIntent.EXTRA_RESULTS);
+                        if (matches != null && !matches.isEmpty() && onVoiceResultCallback != null) {
+                            onVoiceResultCallback.accept(matches.get(0));
                         }
                     }
                 }
@@ -352,6 +369,21 @@ public class CollectionPage extends AppCompatActivity implements CollectionAdapt
             }
         } else {
             Toast.makeText(this, "Unrecognized voice command", Toast.LENGTH_SHORT).show();
+        }
+    }
+
+    public void startVoiceInputForSearch(Consumer<String> callback) {
+        onVoiceResultCallback = callback;
+
+        Intent intent = new Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH);
+        intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL, RecognizerIntent.LANGUAGE_MODEL_FREE_FORM);
+        intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE, Locale.getDefault());
+        intent.putExtra(RecognizerIntent.EXTRA_PROMPT,"Listening...");
+
+        try {
+            voiceLauncher.launch(intent);
+        } catch (ActivityNotFoundException e) {
+            Toast.makeText(this, "Voice input not recognized", Toast.LENGTH_SHORT).show();
         }
     }
 }
