@@ -1,6 +1,7 @@
 package com.example.hci_test.activities;
 
 import android.app.Activity;
+import android.content.ActivityNotFoundException;
 import android.content.Context;
 import android.content.Intent;
 import android.graphics.Bitmap;
@@ -22,6 +23,7 @@ import android.widget.Toast;
 import androidx.activity.result.ActivityResult;
 import androidx.activity.result.ActivityResultCallback;
 import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.ActivityResultRegistry;
 import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AlertDialog;
@@ -30,6 +32,7 @@ import androidx.activity.EdgeToEdge;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
+import androidx.core.app.ActivityOptionsCompat;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
@@ -54,11 +57,13 @@ import org.json.JSONObject;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Random;
 import java.util.Set;
 import java.util.UUID;
+import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
 import okhttp3.Call;
@@ -82,6 +87,9 @@ public class MainActivity extends AppCompatActivity {
     private Post currentPostForVoice;
     private PostAdaptor.OnPostDeletedListener onPostDeletedListener;
 
+    private ActivityResultLauncher<Intent> voiceLauncher;
+    private Consumer<String> onVoiceResultCallback;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -91,6 +99,18 @@ public class MainActivity extends AppCompatActivity {
 
         EdgeToEdge.enable(this);
         setContentView(R.layout.activity_main);
+
+        voiceLauncher = registerForActivityResult(
+                new ActivityResultContracts.StartActivityForResult(),
+                result -> {
+                    if (result.getResultCode() == RESULT_OK && result.getData() != null) {
+                        ArrayList<String> matches = result.getData().getStringArrayListExtra(RecognizerIntent.EXTRA_RESULTS);
+                        if (matches != null && !matches.isEmpty() && onVoiceResultCallback != null) {
+                            onVoiceResultCallback.accept(matches.get(0));
+                        }
+                    }
+                }
+        );
 
         LayoutInflater layoutInflater = getLayoutInflater();
         View dialogViewGuide = layoutInflater.inflate(R.layout.dialog_voice_assistant_guide, null);
@@ -306,7 +326,6 @@ public class MainActivity extends AppCompatActivity {
                 public void onActivityResult(ActivityResult result) {
                     if (result.getResultCode() == Activity.RESULT_OK && result.getData()!=null) {
                         ArrayList<String> d = result.getData().getStringArrayListExtra(RecognizerIntent.EXTRA_RESULTS);
-                        //editTextSearch.setText(editTextSearch.getText()+" "+d.get(0));
                         editTextSearch.setText(d.get(0));
                         performSearch();
                     }
@@ -381,7 +400,7 @@ public class MainActivity extends AppCompatActivity {
                         ByteArrayOutputStream baos = new ByteArrayOutputStream();
                         resized.compress(Bitmap.CompressFormat.JPEG, 80, baos); // 80% quality
                         byte[] imageData = baos.toByteArray();
-                        
+
                         FirebaseStorage storage = FirebaseStorage.getInstance();
                         StorageReference ref = storage.getReference().child("compressed_images/" + UUID.randomUUID() + ".jpg");
                         UploadTask uploadTask = ref.putBytes(imageData);
@@ -451,6 +470,21 @@ public class MainActivity extends AppCompatActivity {
 
         } else {
             Toast.makeText(this, "Unrecognized voice command", Toast.LENGTH_SHORT).show();
+        }
+    }
+
+    public void startVoiceInputForSearch(Consumer<String> callback) {
+        onVoiceResultCallback = callback;
+
+        Intent intent = new Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH);
+        intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL, RecognizerIntent.LANGUAGE_MODEL_FREE_FORM);
+        intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE, Locale.getDefault());
+        intent.putExtra(RecognizerIntent.EXTRA_PROMPT,"Listening...");
+
+        try {
+            voiceLauncher.launch(intent);
+        } catch (ActivityNotFoundException e) {
+            Toast.makeText(this, "Voice input not recognized", Toast.LENGTH_SHORT).show();
         }
     }
 }

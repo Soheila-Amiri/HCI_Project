@@ -145,12 +145,10 @@
         android:id="@+id/checkBoxCollections"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:layout_marginTop="4dp"
+        android:layout_marginEnd="24dp"
         android:text="filter by collection name"
-        app:layout_constraintBottom_toTopOf="@+id/recyclerView"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.448"
-        app:layout_constraintStart_toEndOf="@+id/checkBoxPosts"
-        app:layout_constraintTop_toBottomOf="@+id/editTextSearchCo"
-        app:layout_constraintVertical_bias="1.0" />
+        app:layout_constraintTop_toBottomOf="@+id/editTextSearchCo" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

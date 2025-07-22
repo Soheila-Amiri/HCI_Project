@@ -2,6 +2,7 @@ package com.example.hci_test.activities;
 
 import android.annotation.SuppressLint;
 import android.app.Activity;
+import android.content.ActivityNotFoundException;
 import android.content.Intent;
 import android.os.Bundle;
 import android.speech.RecognizerIntent;
@@ -29,6 +30,7 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.example.hci_test.PostAdaptor;
 import com.example.hci_test.R;
 import com.example.hci_test.adapter.CollectionAdapter;
+import com.example.hci_test.adapter.CollectionChoiceAdapter;
 import com.example.hci_test.model.Collection;
 import com.example.hci_test.model.CollectionManager;
 import com.example.hci_test.model.Post;
@@ -40,6 +42,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Objects;
 import java.util.Set;
+import java.util.function.Consumer;
 
 public class CollectionPage extends AppCompatActivity implements CollectionAdapter.OnCollectionClickListener {
 
@@ -60,8 +63,14 @@ public class CollectionPage extends AppCompatActivity implements CollectionAdapt
     public static String searchedText;
 
     private ActivityResultLauncher<Intent> speechLauncher;
-
+    private ActivityResultLauncher<Intent> speechLauncherPost;
     private TextView textViewCollection;
+
+    private ActivityResultLauncher<Intent> voiceLauncher;
+    private Consumer<String> onVoiceResultCallback;
+
+    private Post currentPostForVoice;
+
 
     @SuppressLint("MissingInflatedId")
     @Override
@@ -81,6 +90,30 @@ public class CollectionPage extends AppCompatActivity implements CollectionAdapt
                 }
         );
 
+        voiceLauncher = registerForActivityResult(
+                new ActivityResultContracts.StartActivityForResult(),
+                result -> {
+                    if (result.getResultCode() == RESULT_OK && result.getData() != null) {
+                        ArrayList<String> matches = result.getData().getStringArrayListExtra(RecognizerIntent.EXTRA_RESULTS);
+                        if (matches != null && !matches.isEmpty() && onVoiceResultCallback != null) {
+                            onVoiceResultCallback.accept(matches.get(0));
+                        }
+                    }
+                }
+        );
+
+        speechLauncherPost = registerForActivityResult(
+                new ActivityResultContracts.StartActivityForResult(),
+                result -> {
+                    if (result.getResultCode() == RESULT_OK && result.getData() != null) {
+                        ArrayList<String> spokenText = result.getData().getStringArrayListExtra(RecognizerIntent.EXTRA_RESULTS);
+                        if (spokenText != null && !spokenText.isEmpty()) {
+                            handleVoiceCommand(spokenText.get(0), currentPostForVoice);
+                        }
+                    }
+                }
+        );
+
         Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
         Objects.requireNonNull(getSupportActionBar()).setDisplayShowTitleEnabled(false);
@@ -89,6 +122,7 @@ public class CollectionPage extends AppCompatActivity implements CollectionAdapt
         checkBoxPosts = findViewById(R.id.checkBoxPosts);
         imageViewMicCo = findViewById(R.id.imageViewMicCo);
         editTextSearchCo = findViewById(R.id.editTextSearchCo);
+        searchedText = editTextSearchCo.getText().toString();
         textViewNoR = findViewById(R.id.textViewNoPosts);
 
         imageViewMicCo.setOnClickListener(new View.OnClickListener() {
@@ -257,10 +291,15 @@ public class CollectionPage extends AppCompatActivity implements CollectionAdapt
         List<Collection> collections = CollectionManager.getAllCollections();
         if (collections.isEmpty()) {
             textViewNoCollections.setVisibility(View.VISIBLE);
-            recyclerView.setVisibility(View.GONE);
+            //recyclerView.setVisibility(View.GONE);
         } else {
             textViewNoCollections.setVisibility(View.GONE);
+            //recyclerView.setVisibility(View.VISIBLE);
+        }
+        if (!checkBoxPosts.isChecked()) {
             recyclerView.setVisibility(View.VISIBLE);
+        } else {
+            recyclerView.setVisibility(View.GONE);
         }
     }
 
@@ -325,6 +364,7 @@ public class CollectionPage extends AppCompatActivity implements CollectionAdapt
     }
 
     private void handleVoiceCommand(String command) {
+        command = command.toLowerCase();
         List<String> allCollectionNames = CollectionManager.getAllCollectionNames();
 
         if (command.toLowerCase().startsWith("create collection")) {
@@ -352,5 +392,81 @@ public class CollectionPage extends AppCompatActivity implements CollectionAdapt
         } else {
             Toast.makeText(this, "Unrecognized voice command", Toast.LENGTH_SHORT).show();
         }
+    }
+
+    public void startVoiceInputForSearch(Consumer<String> callback) {
+        onVoiceResultCallback = callback;
+
+        Intent intent = new Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH);
+        intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL, RecognizerIntent.LANGUAGE_MODEL_FREE_FORM);
+        intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE, Locale.getDefault());
+        intent.putExtra(RecognizerIntent.EXTRA_PROMPT,"Listening...");
+
+        try {
+            voiceLauncher.launch(intent);
+        } catch (ActivityNotFoundException e) {
+            Toast.makeText(this, "Voice input not recognized", Toast.LENGTH_SHORT).show();
+        }
+    }
+
+    public void startVoiceInputForPost(Post post) {
+        currentPostForVoice = post;
+
+        Intent intent = new Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH);
+        intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL, RecognizerIntent.LANGUAGE_MODEL_FREE_FORM);
+        intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE, Locale.getDefault());
+        intent.putExtra(RecognizerIntent.EXTRA_PROMPT, "Say: add to collection collectionName or remove from collection collectionName");
+
+        speechLauncherPost.launch(intent);
+    }
+
+    private void handleVoiceCommand(String command, Post post) {
+        command = command.toLowerCase();
+
+        List<Collection> allCollections = CollectionManager.getAllCollections();
+        List<String> allCollectionNames = CollectionManager.getAllCollectionNames();
+        CollectionChoiceAdapter adapter = new CollectionChoiceAdapter(this, allCollections, post);
+        Set<String> selectedNames = adapter.getSelectedNames();
+
+        if (command.toLowerCase().startsWith("add to collection")) {
+            String collectionName = command.toLowerCase().replace("add to collection", "").trim();
+            if (collectionName.isEmpty()) {
+                Toast.makeText(this, "Please specify the collection name", Toast.LENGTH_SHORT).show();
+            } else if (selectedNames.contains(collectionName)) {
+                Toast.makeText(this, "Post is already in the collection", Toast.LENGTH_SHORT).show();
+            } else if (allCollectionNames.contains(collectionName)) {
+                Collection collection = CollectionManager.getCollectionByName(collectionName);//Should be case insensitive
+                collection.addPost(post);
+                Toast.makeText(this, "Post saved successfully!", Toast.LENGTH_SHORT).show();
+            } else {
+                CollectionManager.createCollection(collectionName);
+                Collection collection = CollectionManager.getCollectionByName(collectionName);
+                collection.addPost(post);
+                Toast.makeText(this, "Post saved successfully!", Toast.LENGTH_SHORT).show();
+            }
+
+        } else if (command.toLowerCase().startsWith("remove from collection")) {
+            String collectionName = command.toLowerCase().replace("remove from collection", "").trim();
+
+            if (collectionName.isEmpty()) {
+                Toast.makeText(this, "Please specify the collection name", Toast.LENGTH_SHORT).show();
+            } else if (selectedNames.contains(collectionName)) {
+                Collection collection = CollectionManager.getCollectionByName(collectionName);
+                collection.removePost(post);
+                Toast.makeText(this, "Post removed successfully!", Toast.LENGTH_SHORT).show();
+            } else if (allCollectionNames.contains(collectionName)) {
+                Toast.makeText(this, "Post is not in the collection", Toast.LENGTH_SHORT).show();
+            } else {
+                Toast.makeText(this, "Collection was not found", Toast.LENGTH_SHORT).show();
+            }
+
+        } else {
+            Toast.makeText(this, "Unrecognized voice command", Toast.LENGTH_SHORT).show();
+        }
+
+        recyclerView.setVisibility(View.GONE);
+        recyclerViewPosts.setVisibility(View.VISIBLE);
+        textViewNoCollections.setVisibility(View.GONE);
+        refreshAllPostsView();
     }
 }
