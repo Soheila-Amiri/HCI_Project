@@ -133,4 +133,5 @@ public class CollectionAdapter extends RecyclerView.Adapter<CollectionAdapter.Vi
         }
         notifyDataSetChanged();
     }
+
 }

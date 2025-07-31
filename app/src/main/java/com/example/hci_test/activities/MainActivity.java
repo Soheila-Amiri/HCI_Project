@@ -264,7 +264,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public void openNewCollectionDialog() {
-        openNewCollectionDialog(null);
+        openNewCollectionDialog(null, null, null);
     }
 
     private void performSearch() {
@@ -308,8 +308,8 @@ public class MainActivity extends AppCompatActivity {
                 .show();
     } */
 
-    public void openNewCollectionDialog(Post postToAdd) {
-        View dialogView = getLayoutInflater().inflate(R.layout.dialog_add_collection, null);
+    public void openNewCollectionDialog(Post post, Runnable onSuccess, Runnable onCancel) {
+        View dialogView = LayoutInflater.from(this).inflate(R.layout.dialog_add_collection, null);
         EditText editText = dialogView.findViewById(R.id.editTextCollectionName);
 
         new AlertDialog.Builder(this)
@@ -320,18 +320,22 @@ public class MainActivity extends AppCompatActivity {
                     if (!name.isEmpty()) {
                         boolean created = CollectionManager.createCollection(name);
                         if (created) {
-                            if (postToAdd != null) {
-                                CollectionManager.addPostToCollection(name, postToAdd);
-                            }
+                            CollectionManager.persistCollections();
                             Toast.makeText(this, "Collection created", Toast.LENGTH_SHORT).show();
+                            if (onSuccess != null) onSuccess.run();
                         } else {
                             Toast.makeText(this, "Collection already exists", Toast.LENGTH_SHORT).show();
+                            openNewCollectionDialog(post, onSuccess, onCancel);
                         }
                     } else {
                         Toast.makeText(this, "Name cannot be empty", Toast.LENGTH_SHORT).show();
+                        openNewCollectionDialog(post, onSuccess, onCancel);
                     }
                 })
-                .setNegativeButton("Cancel", null)
+                .setNegativeButton("Cancel", (dialog, which) -> {
+                    if (onCancel != null) onCancel.run();
+                })
+                .setCancelable(false)
                 .show();
     }
 
@@ -461,11 +465,13 @@ public class MainActivity extends AppCompatActivity {
             } else if (allCollectionNames.contains(collectionName)) {
                 Collection collection = CollectionManager.getCollectionByName(collectionName);//Should be case insensitive
                 collection.addPost(post);
+                CollectionManager.persistCollections();
                 Toast.makeText(this, "Post saved successfully!", Toast.LENGTH_SHORT).show();
             } else {
                 CollectionManager.createCollection(collectionName);
                 Collection collection = CollectionManager.getCollectionByName(collectionName);
                 collection.addPost(post);
+                CollectionManager.persistCollections();
                 Toast.makeText(this, "Post saved successfully!", Toast.LENGTH_SHORT).show();
             }
 
@@ -477,6 +483,7 @@ public class MainActivity extends AppCompatActivity {
             } else if (selectedNames.contains(collectionName)) {
                 Collection collection = CollectionManager.getCollectionByName(collectionName);
                 collection.removePost(post);
+                CollectionManager.persistCollections();
                 Toast.makeText(this, "Post removed successfully!", Toast.LENGTH_SHORT).show();
             } else if (allCollectionNames.contains(collectionName)) {
                 Toast.makeText(this, "Post is not in the collection", Toast.LENGTH_SHORT).show();

@@ -99,6 +99,12 @@ public class CollectionChoiceAdapter extends BaseAdapter {
     public Set<String> getSelectedNames() {
         return selectedNames;
     }
+
+    public void setSelectedNames(Set<String> selectedNames) {
+        this.selectedNames.clear();
+        this.selectedNames.addAll(selectedNames);
+        notifyDataSetChanged();
+    }
 }
 
 

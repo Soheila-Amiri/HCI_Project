@@ -235,9 +235,23 @@ public class PostAdaptor extends RecyclerView.Adapter<PostViewHolder> {
         });
 
         newCollectionBtn.setOnClickListener(v -> {
-            dialog.dismiss();
+            Set<String> selectedBefore = adapter.getSelectedNames();
+            dialog.hide();
+
+            Runnable reopenDialog = () -> {
+                dialog.show();
+                allCollections = CollectionManager.getAllCollections();
+                searchedCollections = new ArrayList<>(allCollections);
+
+                adapter = new CollectionChoiceAdapter(context, searchedCollections, post);
+                adapter.setSelectedNames(selectedBefore);
+                listView.setAdapter(adapter);
+            };
+
             if (context instanceof MainActivity) {
-                ((MainActivity) context).openNewCollectionDialog(post);
+                ((MainActivity) context).openNewCollectionDialog(post, reopenDialog, reopenDialog);
+            } else if(context instanceof CollectionPage) {
+                ((CollectionPage) context).openNewCollectionDialog(post, reopenDialog, reopenDialog);
             }
         });
     }

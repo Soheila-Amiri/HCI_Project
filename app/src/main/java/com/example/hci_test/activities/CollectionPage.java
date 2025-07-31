@@ -469,4 +469,37 @@ public class CollectionPage extends AppCompatActivity implements CollectionAdapt
         textViewNoCollections.setVisibility(View.GONE);
         refreshAllPostsView();
     }
+
+    public void openNewCollectionDialog(Post post, Runnable onSuccess, Runnable onCancel) {
+        View dialogView = LayoutInflater.from(this).inflate(R.layout.dialog_add_collection, null);
+        EditText editText = dialogView.findViewById(R.id.editTextCollectionName);
+
+        new AlertDialog.Builder(this)
+                .setTitle("New Collection")
+                .setView(dialogView)
+                .setPositiveButton("Save", (dialog, which) -> {
+                    String name = editText.getText().toString().trim();
+                    if (!name.isEmpty()) {
+                        boolean created = CollectionManager.createCollection(name);
+                        if (created) {
+                            CollectionManager.persistCollections();
+                            Toast.makeText(this, "Collection created", Toast.LENGTH_SHORT).show();
+                            if (onSuccess != null) onSuccess.run();
+                        } else {
+                            Toast.makeText(this, "Collection already exists", Toast.LENGTH_SHORT).show();
+                            // Keep dialog open
+                            openNewCollectionDialog(post, onSuccess, onCancel);
+                        }
+                    } else {
+                        Toast.makeText(this, "Name cannot be empty", Toast.LENGTH_SHORT).show();
+                        // Keep dialog open
+                        openNewCollectionDialog(post, onSuccess, onCancel);
+                    }
+                })
+                .setNegativeButton("Cancel", (dialog, which) -> {
+                    if (onCancel != null) onCancel.run();
+                })
+                .setCancelable(false)
+                .show();
+    }
 }
